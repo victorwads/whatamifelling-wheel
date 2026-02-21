@@ -1,7 +1,14 @@
 import { EmotionWheel } from './js/wheel.js';
+import { LANGUAGES } from './js/data.js';
 
 const canvas = document.getElementById("wheel");
-const wheel = new EmotionWheel(canvas);
+const langSelect = document.getElementById("lang-select");
+
+// Current language state
+let currentLang = langSelect.value || "pt";
+let langData = LANGUAGES[currentLang];
+
+const wheel = new EmotionWheel(canvas, langData.sectors);
 
 // ---------------------------------------------------------------------------
 // 1. LIFECYCLE
@@ -16,10 +23,23 @@ function resize() {
 
 window.addEventListener("resize", resize);
 resize();
+updateLocalization();
 
 // ---------------------------------------------------------------------------
 // 2. INTERACTION
 // ---------------------------------------------------------------------------
+
+langSelect.addEventListener("change", (e) => {
+  currentLang = e.target.value;
+  langData = LANGUAGES[currentLang];
+  
+  // Update wheel data and redraw
+  wheel.setSectors(langData.sectors);
+  wheel.draw();
+  
+  updateLocalization();
+  updateSidebar();
+});
 
 canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
@@ -42,8 +62,17 @@ canvas.addEventListener("mousemove", (e) => {
 });
 
 // ---------------------------------------------------------------------------
-// 3. UI UPDATES
+// 3. UI UPDATES & LOCALIZATION
 // ---------------------------------------------------------------------------
+
+function updateLocalization() {
+  const ui = langData.ui;
+  document.getElementById("ui-sidebar-title").textContent = ui.sidebarTitle;
+  document.getElementById("btn-clear").textContent = ui.btnClear;
+  document.getElementById("btn-copy").textContent = ui.btnCopy;
+  document.getElementById("btn-export-png").textContent = ui.btnExportPng;
+  document.getElementById("btn-export-pdf").textContent = ui.btnExportPdf;
+}
 
 function updateSidebar() {
   const list = document.getElementById("selected-list");
@@ -51,7 +80,7 @@ function updateSidebar() {
 
   const groups = wheel.getSelectedGroups();
   if (!groups) {
-    list.innerHTML = '<li class="empty">Nenhuma emoção selecionada</li>';
+    list.innerHTML = `<li class="empty">${langData.ui.emptySelection}</li>`;
     return;
   }
 
@@ -86,7 +115,7 @@ document.getElementById("btn-copy").addEventListener("click", async () => {
   const words = Object.values(groups).flat();
   try {
     await navigator.clipboard.writeText(words.join(", "));
-    showToast("Lista copiada!");
+    showToast(langData.ui.toastCopied);
   } catch (err) {
     console.error("Failed to copy!", err);
   }
@@ -94,7 +123,7 @@ document.getElementById("btn-copy").addEventListener("click", async () => {
 
 document.getElementById("btn-export-png").addEventListener("click", () => {
   const link = document.createElement("a");
-  link.download = "emotion-wheel.png";
+  link.download = `emotion-wheel-${currentLang}.png`;
   link.href = canvas.toDataURL("image/png");
   link.click();
 });
@@ -102,12 +131,13 @@ document.getElementById("btn-export-png").addEventListener("click", () => {
 document.getElementById("btn-export-pdf").addEventListener("click", () => {
   const dataUrl = canvas.toDataURL("image/png");
   const groups = wheel.getSelectedGroups();
+  const ui = langData.ui;
   let listingHtml = "";
 
   if (groups) {
     listingHtml += '<div class="page-break"></div>';
     listingHtml += '<div class="listing-page">';
-    listingHtml += '<h1>Emoções Selecionadas</h1>';
+    listingHtml += `<h1>${ui.pdfListTitle}</h1>`;
     for (const [sectorName, words] of Object.entries(groups)) {
       listingHtml += `<h2>${sectorName}</h2><ul>`;
       for (const w of words) listingHtml += `<li>${w}</li>`;
@@ -119,7 +149,7 @@ document.getElementById("btn-export-pdf").addEventListener("click", () => {
   const win = window.open("");
   win.document.write(`
     <html>
-    <head><title>Roda das Emoções – PDF</title>
+    <head><title>${ui.pdfTitle}</title>
     <style>
       @media print { .page-break { page-break-before: always; } }
       body { margin: 0; padding: 20px; font-family: sans-serif; color: #222; }

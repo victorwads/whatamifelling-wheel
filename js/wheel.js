@@ -1,14 +1,15 @@
-import { SECTORS, CONFIG } from './data.js';
+import { CONFIG } from './data.js';
 import { ColorHelper } from './color.js';
 
 /**
  * Main Class to handle Emotion Wheel rendering and hit testing
  */
 export class EmotionWheel {
-  constructor(canvas) {
+  constructor(canvas, sectors) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.selected = new Set();
+    this.sectors = sectors;
     
     // Geometry state
     this.cx = 0;
@@ -16,7 +17,13 @@ export class EmotionWheel {
     this.outerR = 0;
     this.innerR = 0;
     this.ringWidth = 0;
-    this.sectorAngle = (2 * Math.PI) / SECTORS.length;
+    this.sectorAngle = (2 * Math.PI) / this.sectors.length;
+  }
+
+  setSectors(sectors) {
+    this.sectors = sectors;
+    this.sectorAngle = (2 * Math.PI) / this.sectors.length;
+    this.selected.clear();
   }
 
   resize(width, height) {
@@ -38,8 +45,8 @@ export class EmotionWheel {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     // 1. Draw all slices (filled)
-    for (let s = 0; s < SECTORS.length; s++) {
-      const sector = SECTORS[s];
+    for (let s = 0; s < this.sectors.length; s++) {
+      const sector = this.sectors[s];
       const sectorStart = s * this.sectorAngle;
 
       for (let ri = 0; ri < CONFIG.NUM_RINGS; ri++) {
@@ -67,7 +74,8 @@ export class EmotionWheel {
     // 2. Draw highlights
     for (const key of this.selected) {
       const [s, ri, wi] = key.split("-").map(Number);
-      const sector = SECTORS[s];
+      const sector = this.sectors[s];
+      if (!sector) continue;
       const sectorStart = s * this.sectorAngle;
       const m = sector.rings[ri].length;
       const rIn = this.innerR + ri * this.ringWidth + CONFIG.RING_GAP;
@@ -86,8 +94,8 @@ export class EmotionWheel {
     }
 
     // 3. Draw text
-    for (let s = 0; s < SECTORS.length; s++) {
-      const sector = SECTORS[s];
+    for (let s = 0; s < this.sectors.length; s++) {
+      const sector = this.sectors[s];
       const sectorStart = s * this.sectorAngle;
 
       for (let ri = 0; ri < CONFIG.NUM_RINGS; ri++) {
@@ -114,8 +122,8 @@ export class EmotionWheel {
     this.ctx.lineWidth = 1;
     this.ctx.stroke();
 
-    for (let s = 0; s < SECTORS.length; s++) {
-      const sector = SECTORS[s];
+    for (let s = 0; s < this.sectors.length; s++) {
+      const sector = this.sectors[s];
       const aMid = s * this.sectorAngle + this.sectorAngle / 2;
       this.drawSectorLabel(sector.name, aMid, this.innerR * 0.55);
     }
@@ -199,10 +207,10 @@ export class EmotionWheel {
 
     const ringIdx = Math.floor((r - this.innerR) / this.ringWidth);
     const sectorIdx = Math.floor(theta / this.sectorAngle);
-    if (sectorIdx < 0 || sectorIdx >= SECTORS.length) return null;
+    if (sectorIdx < 0 || sectorIdx >= this.sectors.length) return null;
 
     const sectorStart = sectorIdx * this.sectorAngle;
-    const m = SECTORS[sectorIdx].rings[ringIdx].length;
+    const m = this.sectors[sectorIdx].rings[ringIdx].length;
     const wordIdx = Math.floor(((theta - sectorStart) / this.sectorAngle) * m);
 
     return { sectorIdx, ringIdx, wordIdx };
@@ -226,7 +234,8 @@ export class EmotionWheel {
     const groups = {};
     for (const key of this.selected) {
       const [s, ri, wi] = key.split("-").map(Number);
-      const sector = SECTORS[s];
+      const sector = this.sectors[s];
+      if (!sector) continue;
       const word = sector.rings[ri][wi];
       if (!groups[sector.name]) groups[sector.name] = [];
       groups[sector.name].push(word);
