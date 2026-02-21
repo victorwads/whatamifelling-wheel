@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roda das Emoções</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <div id="app">
+
+    <!-- Left: Canvas area -->
+    <div id="canvas-container">
+      <canvas id="wheel"></canvas>
+    </div>
+
+    <!-- Right: Sidebar -->
+    <aside id="sidebar">
+      <h2>Emoções Selecionadas</h2>
+
+      <ul id="selected-list">
+        <li class="empty">Nenhuma emoção selecionada</li>
+      </ul>
+
+      <div class="button-group">
+        <button id="btn-clear" title="Limpar seleção">🗑 Limpar</button>
+        <button id="btn-copy" title="Copiar lista para área de transferência">📋 Copiar</button>
+      </div>
+
+      <hr />
+
+      <div class="button-group">
+        <button id="btn-export-png" title="Exportar a roda como imagem PNG">⬇ Exportar PNG</button>
+        <button id="btn-export-pdf" title="Exportar para PDF (via impressão)">📄 Exportar PDF</button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast"></div>
+
+  <script src="main.js"></script>
+</body>
+</html>
