@@ -11,13 +11,21 @@ export class EmotionWheel {
     this.selected = new Set();
     this.sectors = sectors;
     
-    // Geometry state
+    // Geometry state (world coordinates)
     this.cx = 0;
     this.cy = 0;
     this.outerR = 0;
     this.innerR = 0;
     this.ringWidth = 0;
     this.sectorAngle = (2 * Math.PI) / this.sectors.length;
+
+    // Canvas dimensions and viewport
+    this.canvasW = 0;
+    this.canvasH = 0;
+    this.worldSize = 0;
+    this.vpScale = 1;
+    this.vpTx = 0;
+    this.vpTy = 0;
   }
 
   setSectors(sectors) {
@@ -26,23 +34,38 @@ export class EmotionWheel {
     this.selected.clear();
   }
 
-  resize(width, height) {
+  resize(containerW, containerH) {
     const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = width * dpr;
-    this.canvas.height = height * dpr;
-    this.canvas.style.width = width + "px";
-    this.canvas.style.height = height + "px";
-    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.canvasW = containerW;
+    this.canvasH = containerH;
+    this.canvas.width = containerW * dpr;
+    this.canvas.height = containerH * dpr;
+    this.canvas.style.width = containerW + "px";
+    this.canvas.style.height = containerH + "px";
 
-    this.cx = width / 2;
-    this.cy = height / 2;
-    this.outerR = (width / 2) * 0.95;
+    // World size: the wheel occupies a square of this size
+    this.worldSize = Math.min(containerW, containerH);
+    this.cx = this.worldSize / 2;
+    this.cy = this.worldSize / 2;
+    this.outerR = (this.worldSize / 2) * 0.95;
     this.innerR = this.outerR * CONFIG.CENTER_RATIO;
     this.ringWidth = (this.outerR - this.innerR) / CONFIG.NUM_RINGS;
   }
 
+  setViewport(scale, tx, ty) {
+    this.vpScale = scale;
+    this.vpTx = tx;
+    this.vpTy = ty;
+  }
+
   draw() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    const dpr = window.devicePixelRatio || 1;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.ctx.clearRect(0, 0, this.canvasW, this.canvasH);
+
+    // Apply viewport transform (world → screen)
+    this.ctx.translate(this.vpTx, this.vpTy);
+    this.ctx.scale(this.vpScale, this.vpScale);
 
     // 1. Draw all slices (filled)
     for (let s = 0; s < this.sectors.length; s++) {
@@ -259,5 +282,45 @@ export class EmotionWheel {
       groups[sector.name].push(word);
     }
     return groups;
+  }
+
+  /**
+   * Export the wheel as a PNG data URL at its natural (world) resolution,
+   * independent of the current viewport zoom/pan.
+   */
+  exportDataURL() {
+    const dpr = window.devicePixelRatio || 1;
+    const size = this.worldSize;
+    const offscreen = document.createElement('canvas');
+    offscreen.width = size * dpr;
+    offscreen.height = size * dpr;
+
+    // Temporarily swap context and viewport
+    const origCtx = this.ctx;
+    const origW = this.canvasW;
+    const origH = this.canvasH;
+    const origS = this.vpScale;
+    const origTx = this.vpTx;
+    const origTy = this.vpTy;
+
+    this.ctx = offscreen.getContext('2d');
+    this.canvasW = size;
+    this.canvasH = size;
+    this.vpScale = 1;
+    this.vpTx = 0;
+    this.vpTy = 0;
+
+    this.draw();
+    const url = offscreen.toDataURL('image/png');
+
+    // Restore
+    this.ctx = origCtx;
+    this.canvasW = origW;
+    this.canvasH = origH;
+    this.vpScale = origS;
+    this.vpTx = origTx;
+    this.vpTy = origTy;
+
+    return url;
   }
 }

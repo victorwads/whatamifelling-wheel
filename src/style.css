@@ -31,8 +31,7 @@ html, body {
 
 #wheel {
   display: block;
-  transform-origin: 0 0;
-  /* actual width/height and transform set by JS */
+  /* size controlled by JS; no CSS transforms needed */
 }
 
 /* ---- Zoom Controls ---- */

@@ -31,75 +31,65 @@ function getBrowserLanguage() {
   return "pt";
 }
 
-// Current language state
-let currentLang = getBrowserLanguage();
+// Current language: prefer localStorage, then browser detection
+let currentLang = localStorage.getItem('emotion-wheel-lang');
+if (!currentLang || !LANGUAGES[currentLang]) currentLang = getBrowserLanguage();
 langSelect.value = currentLang;
 let langData = LANGUAGES[currentLang];
 
 const wheel = new EmotionWheel(canvas, langData.sectors);
 
 // ===========================================================================
-//  ZOOM & PAN — simple approach using CSS transform on the canvas.
-//  State: scale, tx, ty  →  canvas.style.transform = matrix(scale,0,0,scale,tx,ty)
-//  The canvas is rendered once at full resolution; zoom just scales the element.
+//  VIEWPORT — re-render approach for crisp zoom (like SVG).
+//  The canvas is always full-container resolution. Zoom/pan is applied via
+//  ctx.translate + ctx.scale before every draw, so text is always sharp.
 // ===========================================================================
 
-let vScale = 1;   // current visual scale
-let tx = 0;        // translation X (px, in container space)
-let ty = 0;        // translation Y (px, in container space)
-const MIN_SCALE = 0.8;
-const MAX_SCALE = 6;
+let vpScale = 1;
+let vpTx = 0;
+let vpTy = 0;
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 8;
 
-// CSS width/height of the canvas (set in resize)
-let cssW = 0;
-let cssH = 0;
-
-function applyTransform() {
-  // transform-origin is center center (default). We use matrix to combine.
-  // With transform-origin center: translate moves relative to the center of the element.
-  // Simpler: use transform-origin:0 0 and compute manually.
-  canvas.style.transformOrigin = "0 0";
-  canvas.style.transform = `matrix(${vScale},0,0,${vScale},${tx},${ty})`;
+function updateView() {
+  wheel.setViewport(vpScale, vpTx, vpTy);
+  wheel.draw();
 }
 
-function resetZoom() {
-  vScale = 1;
-  tx = 0;
-  ty = 0;
-  centerCanvas();
-  applyTransform();
-}
-
-function centerCanvas() {
+function centerView() {
   const cw = container.clientWidth;
   const ch = container.clientHeight;
-  tx = (cw - cssW * vScale) / 2;
-  ty = (ch - cssH * vScale) / 2;
+  const ws = wheel.worldSize;
+  vpTx = (cw - ws * vpScale) / 2;
+  vpTy = (ch - ws * vpScale) / 2;
 }
 
-// Zoom toward a point (px, py) in container-space
-function zoomAt(px, py, newScale) {
+function resetView() {
+  vpScale = 1;
+  centerView();
+  updateView();
+}
+
+// Zoom toward a screen point (sx, sy) in container-space
+function zoomAt(sx, sy, newScale) {
   newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
-  // The point (px, py) in container maps to canvas coords:
-  //   canvasX = (px - tx) / vScale
-  // After zoom, we want the same canvasX to map back to px:
-  //   px = canvasX * newScale + newTx   →   newTx = px - canvasX * newScale
-  const canvasX = (px - tx) / vScale;
-  const canvasY = (py - ty) / vScale;
-  tx = px - canvasX * newScale;
-  ty = py - canvasY * newScale;
-  vScale = newScale;
-  applyTransform();
+  const worldX = (sx - vpTx) / vpScale;
+  const worldY = (sy - vpTy) / vpScale;
+  vpTx = sx - worldX * newScale;
+  vpTy = sy - worldY * newScale;
+  vpScale = newScale;
+  updateView();
 }
 
-// Convert a point in page/client coords to canvas logical coords (for hitTest)
-function clientToCanvas(clientX, clientY) {
+// Convert client coords → world coords (for hitTest)
+function clientToWorld(clientX, clientY) {
   const rect = container.getBoundingClientRect();
-  const px = clientX - rect.left;
-  const py = clientY - rect.top;
-  const canvasX = (px - tx) / vScale;
-  const canvasY = (py - ty) / vScale;
-  return { x: canvasX, y: canvasY };
+  const sx = clientX - rect.left;
+  const sy = clientY - rect.top;
+  return {
+    x: (sx - vpTx) / vpScale,
+    y: (sy - vpTy) / vpScale
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -110,12 +100,8 @@ function resize() {
   if (!container) return;
   const w = container.clientWidth;
   const h = container.clientHeight;
-  const size = Math.min(w, h);
-  cssW = size;
-  cssH = size;
-  wheel.resize(size, size);
-  wheel.draw();
-  resetZoom();
+  wheel.resize(w, h);
+  resetView();
 }
 
 window.addEventListener("resize", resize);
@@ -123,19 +109,19 @@ resize();
 updateLocalization();
 
 // ===========================================================================
-//  POINTER EVENTS — unified mouse + touch handling
+//  POINTER EVENTS — unified mouse + touch (drag to pan, pinch to zoom)
 // ===========================================================================
 
-// We track active pointers for pinch and drag
-const pointers = new Map();  // pointerId → { x, y }
+const pointers = new Map();
 let dragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 let dragStartTx = 0;
 let dragStartTy = 0;
-let didDrag = false;       // did the pointer move enough to count as a drag?
-let pinchStartDist = 0;
-let pinchStartScale = 1;
+let didDrag = false;
+let pinchPrevDist = 0;
+let pinchPrevCx = 0;
+let pinchPrevCy = 0;
 
 container.addEventListener("pointerdown", (e) => {
   if (e.target.closest("#zoom-controls")) return;
@@ -148,13 +134,15 @@ container.addEventListener("pointerdown", (e) => {
     didDrag = false;
     dragStartX = e.clientX;
     dragStartY = e.clientY;
-    dragStartTx = tx;
-    dragStartTy = ty;
+    dragStartTx = vpTx;
+    dragStartTy = vpTy;
   } else if (pointers.size === 2) {
     dragging = false;
     const pts = [...pointers.values()];
-    pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-    pinchStartScale = vScale;
+    pinchPrevDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    const rect = container.getBoundingClientRect();
+    pinchPrevCx = (pts[0].x + pts[1].x) / 2 - rect.left;
+    pinchPrevCy = (pts[0].y + pts[1].y) / 2 - rect.top;
   }
 });
 
@@ -163,23 +151,39 @@ container.addEventListener("pointermove", (e) => {
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
   if (pointers.size === 2) {
-    // Pinch zoom
+    // Pinch zoom + pan
     const pts = [...pointers.values()];
     const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-    const newScale = pinchStartScale * (dist / pinchStartDist);
     const rect = container.getBoundingClientRect();
     const cx = (pts[0].x + pts[1].x) / 2 - rect.left;
     const cy = (pts[0].y + pts[1].y) / 2 - rect.top;
-    zoomAt(cx, cy, newScale);
+
+    // Pan: follow midpoint movement
+    vpTx += cx - pinchPrevCx;
+    vpTy += cy - pinchPrevCy;
+
+    // Zoom: scale around current midpoint
+    const ratio = dist / pinchPrevDist;
+    const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, vpScale * ratio));
+    const worldX = (cx - vpTx) / vpScale;
+    const worldY = (cy - vpTy) / vpScale;
+    vpTx = cx - worldX * newScale;
+    vpTy = cy - worldY * newScale;
+    vpScale = newScale;
+
+    pinchPrevDist = dist;
+    pinchPrevCx = cx;
+    pinchPrevCy = cy;
+    updateView();
     didDrag = true;
   } else if (pointers.size === 1 && dragging) {
     // Pan (drag)
     const dx = e.clientX - dragStartX;
     const dy = e.clientY - dragStartY;
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) didDrag = true;
-    tx = dragStartTx + dx;
-    ty = dragStartTy + dy;
-    applyTransform();
+    vpTx = dragStartTx + dx;
+    vpTy = dragStartTy + dy;
+    updateView();
   }
 });
 
@@ -188,24 +192,20 @@ container.addEventListener("pointerup", (e) => {
   pointers.delete(e.pointerId);
 
   if (wasInPointers && pointers.size === 0 && !didDrag) {
-    // It was a tap / click — handle emotion selection
-    const { x, y } = clientToCanvas(e.clientX, e.clientY);
+    const { x, y } = clientToWorld(e.clientX, e.clientY);
     handleTap(x, y);
   }
 
-  // If going from 2→1 pointers, reset drag anchor to the remaining pointer
   if (pointers.size === 1) {
     const p = [...pointers.values()][0];
     dragging = true;
     dragStartX = p.x;
     dragStartY = p.y;
-    dragStartTx = tx;
-    dragStartTy = ty;
+    dragStartTx = vpTx;
+    dragStartTy = vpTy;
   }
 
-  if (pointers.size === 0) {
-    dragging = false;
-  }
+  if (pointers.size === 0) dragging = false;
 });
 
 container.addEventListener("pointercancel", (e) => {
@@ -213,14 +213,23 @@ container.addEventListener("pointercancel", (e) => {
   if (pointers.size === 0) dragging = false;
 });
 
-// Mouse wheel zoom (desktop)
+// Scroll = pan | Ctrl/Meta + scroll (or trackpad pinch) = zoom
 container.addEventListener("wheel", (e) => {
   e.preventDefault();
-  const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
   const rect = container.getBoundingClientRect();
-  const px = e.clientX - rect.left;
-  const py = e.clientY - rect.top;
-  zoomAt(px, py, vScale * factor);
+  const sx = e.clientX - rect.left;
+  const sy = e.clientY - rect.top;
+
+  if (e.ctrlKey || e.metaKey) {
+    // Zoom (Ctrl+scroll wheel, or trackpad pinch which fires as ctrlKey)
+    const factor = Math.pow(1.003, -e.deltaY);
+    zoomAt(sx, sy, vpScale * factor);
+  } else {
+    // Pan (regular scroll / trackpad two-finger swipe)
+    vpTx -= e.deltaX;
+    vpTy -= e.deltaY;
+    updateView();
+  }
 }, { passive: false });
 
 // ---------------------------------------------------------------------------
@@ -229,15 +238,15 @@ container.addEventListener("wheel", (e) => {
 
 document.getElementById("btn-zoom-in").addEventListener("click", () => {
   const rect = container.getBoundingClientRect();
-  zoomAt(rect.width / 2, rect.height / 2, vScale * 1.4);
+  zoomAt(rect.width / 2, rect.height / 2, vpScale * 1.4);
 });
 
 document.getElementById("btn-zoom-out").addEventListener("click", () => {
   const rect = container.getBoundingClientRect();
-  zoomAt(rect.width / 2, rect.height / 2, vScale / 1.4);
+  zoomAt(rect.width / 2, rect.height / 2, vpScale / 1.4);
 });
 
-document.getElementById("btn-zoom-reset").addEventListener("click", resetZoom);
+document.getElementById("btn-zoom-reset").addEventListener("click", resetView);
 
 // ---------------------------------------------------------------------------
 // TAP / CLICK HANDLING
@@ -250,7 +259,6 @@ function handleTap(x, y) {
     wheel.draw();
     updateSidebar();
 
-    // Analytics: log which emotion was clicked
     const sector = langData.sectors[hit.sectorIdx];
     const word = sector.rings[hit.ringIdx][hit.wordIdx];
     logEvent(analytics, 'select_item', {
@@ -260,10 +268,10 @@ function handleTap(x, y) {
   }
 }
 
-// Mouse hover cursor (desktop only, doesn't interfere with pointer events)
+// Mouse hover cursor
 canvas.addEventListener("mousemove", (e) => {
   if (pointers.size > 0) return;
-  const { x, y } = clientToCanvas(e.clientX, e.clientY);
+  const { x, y } = clientToWorld(e.clientX, e.clientY);
   canvas.style.cursor = wheel.hitTest(x, y) ? "pointer" : "grab";
 });
 
@@ -274,6 +282,7 @@ canvas.addEventListener("mousemove", (e) => {
 langSelect.addEventListener("change", (e) => {
   currentLang = e.target.value;
   langData = LANGUAGES[currentLang];
+  localStorage.setItem('emotion-wheel-lang', currentLang);
   
   logEvent(analytics, 'select_content', { content_type: 'language', item_id: currentLang });
   
@@ -362,7 +371,7 @@ document.getElementById("btn-copy").addEventListener("click", async () => {
 document.getElementById("btn-export-png").addEventListener("click", async () => {
   logEvent(analytics, 'share', { method: 'png', content_type: 'image' });
   
-  const dataUrl = canvas.toDataURL("image/png");
+  const dataUrl = wheel.exportDataURL();
   const filename = `emotion-wheel-${currentLang}.png`;
 
   try {
@@ -388,7 +397,7 @@ document.getElementById("btn-export-png").addEventListener("click", async () => 
 document.getElementById("btn-export-pdf").addEventListener("click", () => {
   logEvent(analytics, 'share', { method: 'pdf', content_type: 'document' });
   
-  const dataUrl = canvas.toDataURL("image/png");
+  const dataUrl = wheel.exportDataURL();
   const groups = wheel.getSelectedGroups();
   const ui = langData.ui;
   let listingHtml = "";
