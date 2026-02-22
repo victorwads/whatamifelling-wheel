@@ -1,0 +1,35 @@
+; Emotion Wheel - Multilingual Domains
+; All pointing to whatamifelling.web.app
+
+fellings            IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+emotions            IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+mood                IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+
+sentir              IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+sentimentos         IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+emocoes             IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+sinto               IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+comoestou           IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+
+sentimientos        IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+emociones           IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+
+whatamifeeling      IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+howifeel            IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+feelingnow          IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+feelingwheel        IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+
+oquesinto           IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+
+queestoysintiendo   IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+loquesiento         IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+
+feelingnow          IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+sharefeelings       IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+expressing          IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+myfeelings          IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+yourfeelings        IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+ourfeelings         IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+
+insideme              IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false
+emotional           IN CNAME whatamifelling.web.app. ; scope:whatamifelling cf_tags=cf-proxied:false

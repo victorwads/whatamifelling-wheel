@@ -1,5 +1,20 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
 import { EmotionWheel } from './js/wheel.js';
 import { LANGUAGES } from './js/data.js';
+
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyCREHXxyytzQfisgP3c2syZwgHtJLxCfD4",
+  authDomain: "whatamifelling.firebaseapp.com",
+  projectId: "whatamifelling",
+  storageBucket: "whatamifelling.firebasestorage.app",
+  messagingSenderId: "591867024928",
+  appId: "1:591867024928:web:cde827caa412c6f6368e45",
+  measurementId: "G-GW7XVYLDKX"
+};
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 const canvas = document.getElementById("wheel");
 const langSelect = document.getElementById("lang-select");
@@ -44,6 +59,8 @@ updateLocalization();
 langSelect.addEventListener("change", (e) => {
   currentLang = e.target.value;
   langData = LANGUAGES[currentLang];
+  
+  logEvent(analytics, 'select_content', { content_type: 'language', item_id: currentLang });
   
   // Update wheel data and redraw
   wheel.setSectors(langData.sectors);
@@ -124,23 +141,58 @@ document.getElementById("btn-copy").addEventListener("click", async () => {
   const groups = wheel.getSelectedGroups();
   if (!groups) return;
 
-  const words = Object.values(groups).flat();
+  const words = Object.values(groups).flat().join(", ");
+  logEvent(analytics, 'share', { method: 'copy', content_type: 'text' });
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: langData.ui.sidebarTitle,
+        text: words
+      });
+      return;
+    } catch (err) {
+      console.error("Share failed:", err);
+    }
+  }
+
   try {
-    await navigator.clipboard.writeText(words.join(", "));
+    await navigator.clipboard.writeText(words);
     showToast(langData.ui.toastCopied);
   } catch (err) {
     console.error("Failed to copy!", err);
   }
 });
 
-document.getElementById("btn-export-png").addEventListener("click", () => {
-  const link = document.createElement("a");
-  link.download = `emotion-wheel-${currentLang}.png`;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
+document.getElementById("btn-export-png").addEventListener("click", async () => {
+  logEvent(analytics, 'share', { method: 'png', content_type: 'image' });
+  
+  const dataUrl = canvas.toDataURL("image/png");
+  const filename = `emotion-wheel-${currentLang}.png`;
+
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    const file = new File([blob], filename, { type: "image/png" });
+    
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: langData.ui.pdfTitle || 'Emotion Wheel',
+        files: [file]
+      });
+    } else {
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    }
+  } catch (err) {
+    console.error("Error sharing PNG:", err);
+  }
 });
 
 document.getElementById("btn-export-pdf").addEventListener("click", () => {
+  logEvent(analytics, 'share', { method: 'pdf', content_type: 'document' });
+  
   const dataUrl = canvas.toDataURL("image/png");
   const groups = wheel.getSelectedGroups();
   const ui = langData.ui;
