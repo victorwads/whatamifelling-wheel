@@ -558,8 +558,9 @@ html, body {
 
   #export-menu {
     top: auto;
-    bottom: 8px;
+    bottom: calc(55vh + 8px); /* Acima da sidebar quando expandida */
     right: 8px;
+    z-index: 35; /* Acima da sidebar (z-index: 30) */
   }
 
   /* Sidebar → bottom sheet */

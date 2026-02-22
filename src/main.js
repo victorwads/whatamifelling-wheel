@@ -1,6 +1,6 @@
 import { EmotionWheel } from './js/wheel.js';
 import { LANGUAGES } from './js/data.js';
-import { generatePNG, generatePDF, generatePDFHtml, formatAsMarkdownList, shareFile, downloadBlob, isMobile, encodeSelectionHash } from './js/export.js';
+import { generatePNG, generatePDF, generatePDFHtml, formatAsMarkdownList, shareFile, downloadBlob, isMobile, encodeSelectionHash, buildShareURL } from './js/export.js';
 import {
   setLanguageProperty, trackLanguageChange, trackEmotionClick,
   trackClearSelection, trackCopyEmotions, trackExportMenuOpen,
@@ -53,10 +53,11 @@ function decodeSelectionFromHash(hash) {
   return keys;
 }
 
-// Carrega seleção do hash da URL, se existir
+// Carrega seleção do pathname da URL, se existir
 let initialSelected = null;
-if (location.hash.startsWith('#sel=')) {
-  initialSelected = new Set(decodeSelectionFromHash(location.hash.slice(5)));
+const pathParts = location.pathname.split('/').filter(p => p);
+if (pathParts.length > 0 && pathParts[pathParts.length - 1].match(/^[A-Za-z0-9_-]+$/)) {
+  initialSelected = new Set(decodeSelectionFromHash(pathParts[pathParts.length - 1]));
 }
 
 const wheel = new EmotionWheel(canvas, langData.sectors);
@@ -169,6 +170,11 @@ let pinchPrevDist = 0;
 let pinchPrevAngle = 0;
 let pinchPrevCx = 0;
 let pinchPrevCy = 0;
+let gesturePrevScale = 1;
+let gesturePrevRotation = 0;
+let gesturePrevCx = 0;
+let gesturePrevCy = 0;
+let gestureActive = false;
 
 container.addEventListener("pointerdown", (e) => {
   if (e.target.closest("#zoom-controls") || e.target.closest("#floating-left") || e.target.closest("#floating-right") || e.target.closest("#export-menu")) return;
@@ -284,6 +290,80 @@ container.addEventListener("pointercancel", (e) => {
   if (pointers.size === 0) dragging = false;
 });
 
+// Safari-only gesture events for trackpad pinch + rotate
+container.addEventListener("gesturestart", (e) => {
+  if (e.target.closest("#zoom-controls") || e.target.closest("#floating-left") || e.target.closest("#floating-right") || e.target.closest("#export-menu")) return;
+  e.preventDefault();
+  gestureActive = true;
+  dragging = false;
+  const rect = container.getBoundingClientRect();
+  gesturePrevScale = 1;
+  gesturePrevRotation = 0;
+  gesturePrevCx = e.clientX - rect.left;
+  gesturePrevCy = e.clientY - rect.top;
+}, { passive: false });
+
+container.addEventListener("gesturechange", (e) => {
+  if (!gestureActive) return;
+  e.preventDefault();
+  const rect = container.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+
+  // Pan: follow midpoint movement
+  vpTx += cx - gesturePrevCx;
+  vpTy += cy - gesturePrevCy;
+
+  // Zoom: scale around current midpoint
+  const ratio = e.scale / gesturePrevScale;
+  const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, vpScale * ratio));
+  const worldX = (cx - vpTx) / vpScale;
+  const worldY = (cy - vpTy) / vpScale;
+  vpTx = cx - worldX * newScale;
+  vpTy = cy - worldY * newScale;
+  vpScale = newScale;
+
+  // Rotate: rotate around current midpoint
+  let angleDiff = (e.rotation - gesturePrevRotation) * Math.PI / 180;
+  if (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+  if (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+
+  if (angleDiff !== 0) {
+    const rx = (cx - vpTx) / vpScale - wheel.cx;
+    const ry = (cy - vpTy) / vpScale - wheel.cy;
+
+    const cos = Math.cos(angleDiff);
+    const sin = Math.sin(angleDiff);
+
+    const rxNew = rx * cos - ry * sin;
+    const ryNew = rx * sin + ry * cos;
+
+    vpTx = cx - vpScale * (wheel.cx + rxNew);
+    vpTy = cy - vpScale * (wheel.cy + ryNew);
+
+    vpRotation += angleDiff;
+  }
+
+  gesturePrevScale = e.scale;
+  gesturePrevRotation = e.rotation;
+  gesturePrevCx = cx;
+  gesturePrevCy = cy;
+  updateView();
+  didDrag = true;
+}, { passive: false });
+
+container.addEventListener("gestureend", (e) => {
+  if (!gestureActive) return;
+  e.preventDefault();
+  gestureActive = false;
+});
+
+container.addEventListener("gesturecancel", (e) => {
+  if (!gestureActive) return;
+  e.preventDefault();
+  gestureActive = false;
+});
+
 // Scroll = pan | Ctrl/Meta + scroll (or trackpad pinch) = zoom
 container.addEventListener("wheel", (e) => {
   e.preventDefault();
@@ -329,13 +409,10 @@ function handleTap(x, y) {
     wheel.toggleSelection(hit);
     wheel.draw();
     updateSidebar();
-    // Atualiza hash da URL
+    // Atualiza URL com history API
     const hash = encodeSelectionHash(wheel.selected);
-    if (hash) {
-      history.replaceState(null, '', location.pathname + location.search + '#sel=' + hash);
-    } else {
-      history.replaceState(null, '', location.pathname + location.search);
-    }
+    const baseUrl = location.origin + '/' + (hash || '');
+    history.pushState({ selection: hash }, '', baseUrl);
 
     const sector = langData.sectors[hit.sectorIdx];
     const word = sector.rings[hit.ringIdx][hit.wordIdx];
@@ -469,15 +546,16 @@ document.getElementById("btn-clear").addEventListener("click", () => {
   wheel.clearSelection();
   wheel.draw();
   updateSidebar();
-  // Limpa hash da URL
-  history.replaceState(null, '', location.pathname + location.search);
+  // Limpa URL
+  history.pushState({ selection: null }, '', location.origin + '/');
 });
 
 // Copy as markdown list (clipboard only, no share API)
 document.getElementById("btn-copy-text").addEventListener("click", async () => {
   const groups = wheel.getSelectedGroups();
   if (!groups) return;
-  const text = `${langData.ui.shareIntro || 'Olha meus sentimentos no site'}: ${location.origin + location.pathname}\n\n` + formatAsMarkdownList(groups);
+  const shareUrl = buildShareURL(wheel.selected);
+  const text = formatAsMarkdownList(groups) + '\n\n' + (langData.ui.shareIntro || 'Olha meus sentimentos') + ':\n' + shareUrl;
   trackCopyEmotions(currentLang);
   if (isMobile() && navigator.share) {
     try {
@@ -506,11 +584,11 @@ document.getElementById("btn-copy-text").addEventListener("click", async () => {
 });
 
 document.getElementById("btn-copy-link").addEventListener("click", async () => {
-  const link = location.origin + location.pathname + location.hash;
-  const msg = `${langData.ui.shareIntro || 'Olha meus sentimentos no site'}: ${link}`;
+  const link = buildShareURL(wheel.selected);
+  const msg = `${langData.ui.shareIntro || 'Olha meus sentimentos'}: ${link}`;
   if (isMobile() && navigator.share) {
     try {
-      await navigator.share({ text: msg, url: link });
+      await navigator.share({ text: msg });
       showToast('Compartilhado!');
     } catch (err) { showToast('Falha ao compartilhar'); }
     return;
@@ -564,8 +642,8 @@ document.getElementById("btn-export-png").addEventListener("click", async () => 
 
   if (isMobile()) {
     const file = new File([blob], filename, { type: "image/png" });
-    const shareText = `${ui.shareIntro || 'Olha meus sentimentos'}: ${url}`;
-    const shared = await shareFile(file, ui.appTitle, shareText, url);
+    const shareText = `${ui.shareIntro || 'Olha meus sentimentos'}:\n${url}`;
+    const shared = await shareFile(file, ui.appTitle, shareText);
     if (!shared) downloadBlob(blob, filename);
   } else {
     downloadBlob(blob, filename);
@@ -584,8 +662,8 @@ document.getElementById("btn-export-pdf").addEventListener("click", async () => 
     const { blob, filename, url } = await generatePDF(wheel, currentLang, ui, groups);
     if (isMobile()) {
       const file = new File([blob], filename, { type: 'application/pdf' });
-      const shareText = `${ui.shareIntro || 'Olha meus sentimentos'}: ${url}`;
-      const shared = await shareFile(file, ui.appTitle, shareText, url);
+      const shareText = `${ui.shareIntro || 'Olha meus sentimentos'}:\n${url}`;
+      const shared = await shareFile(file, ui.appTitle, shareText);
       if (!shared) downloadBlob(blob, filename);
     } else {
       downloadBlob(blob, filename);
@@ -754,3 +832,19 @@ function showToast(msg) {
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2000);
 }
+
+// ---------------------------------------------------------------------------
+// HISTORY API SUPPORT (Botão Voltar)
+// ---------------------------------------------------------------------------
+
+window.addEventListener('popstate', (event) => {
+  const pathParts = location.pathname.split('/').filter(p => p);
+  if (pathParts.length > 0 && pathParts[pathParts.length - 1].match(/^[A-Za-z0-9_-]+$/)) {
+    const selection = new Set(decodeSelectionFromHash(pathParts[pathParts.length - 1]));
+    wheel.selected = selection;
+  } else {
+    wheel.selected = new Set();
+  }
+  wheel.draw();
+  updateSidebar();
+});

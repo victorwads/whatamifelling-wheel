@@ -21,9 +21,13 @@ export function encodeSelectionHash(selectedSet) {
  * Build the full shareable URL with the selection hash.
  */
 export function buildShareURL(selectedSet) {
-  let url = location.origin + location.pathname;
+  let url = location.origin;
   const hash = encodeSelectionHash(selectedSet);
-  if (hash) url += '#sel=' + hash;
+  if (hash) {
+    url += '/' + hash;
+  } else {
+    url += location.pathname;
+  }
   return url;
 }
 
@@ -495,12 +499,11 @@ export function formatAsMarkdownList(groups) {
  * Share a file using the Web Share API (mobile).
  * Returns true if shared successfully, false otherwise.
  */
-export async function shareFile(file, title, text, url) {
+export async function shareFile(file, title, text) {
   try {
     const shareData = { files: [file] };
     if (text) shareData.text = text;
     if (title) shareData.title = title;
-    if (url) shareData.url = url;
     if (navigator.canShare && navigator.canShare(shareData)) {
       await navigator.share(shareData);
       return true;
