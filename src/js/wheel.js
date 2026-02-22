@@ -8,9 +8,11 @@ export class EmotionWheel {
   constructor(canvas, sectors) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
-    this.selected = new Set();
     this.sectors = sectors;
-    
+    // Carrega seleção do Session Storage
+    const saved = sessionStorage.getItem('emotion-wheel-selected');
+    this.selected = saved ? new Set(JSON.parse(saved)) : new Set();
+
     // Geometry state (world coordinates)
     this.cx = 0;
     this.cy = 0;
@@ -62,7 +64,7 @@ export class EmotionWheel {
   }
 
   draw() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = this._dprOverride || (window.devicePixelRatio || 1);
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.ctx.clearRect(0, 0, this.canvasW, this.canvasH);
 
@@ -260,10 +262,13 @@ export class EmotionWheel {
     } else {
       this.selected.add(key);
     }
+    // Salva seleção no Session Storage
+    sessionStorage.setItem('emotion-wheel-selected', JSON.stringify(Array.from(this.selected)));
   }
 
   clearSelection() {
     this.selected.clear();
+    sessionStorage.setItem('emotion-wheel-selected', JSON.stringify([]));
   }
 
   getSelectedGroups() {
@@ -284,8 +289,8 @@ export class EmotionWheel {
    * Export the wheel as a PNG data URL at its natural (world) resolution,
    * independent of the current viewport zoom/pan.
    */
-  exportDataURL() {
-    const dpr = window.devicePixelRatio || 1;
+  exportDataURL(customScale) {
+    const dpr = customScale || (window.devicePixelRatio || 1);
     const size = this.worldSize;
     const offscreen = document.createElement('canvas');
     offscreen.width = size * dpr;
@@ -299,6 +304,7 @@ export class EmotionWheel {
     const origTx = this.vpTx;
     const origTy = this.vpTy;
 
+    this._dprOverride = dpr;
     this.ctx = offscreen.getContext('2d');
     this.canvasW = size;
     this.canvasH = size;
@@ -310,6 +316,7 @@ export class EmotionWheel {
     const url = offscreen.toDataURL('image/png');
 
     // Restore
+    delete this._dprOverride;
     this.ctx = origCtx;
     this.canvasW = origW;
     this.canvasH = origH;

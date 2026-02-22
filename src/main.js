@@ -1,6 +1,6 @@
 import { EmotionWheel } from './js/wheel.js';
 import { LANGUAGES } from './js/data.js';
-import { generatePNG, generatePDFHtml, formatAsMarkdownList, shareFile, downloadBlob, isMobile } from './js/export.js';
+import { generatePNG, generatePDF, generatePDFHtml, formatAsMarkdownList, shareFile, downloadBlob, isMobile } from './js/export.js';
 import {
   setLanguageProperty, trackLanguageChange, trackEmotionClick,
   trackClearSelection, trackCopyEmotions, trackExportMenuOpen,
@@ -107,6 +107,7 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 updateLocalization();
+updateSidebar();
 
 // ===========================================================================
 //  POINTER EVENTS — unified mouse + touch (drag to pan, pinch to zoom)
@@ -330,12 +331,13 @@ function updateSidebar() {
   barLi.className = "percentage-bar-wrapper";
   const bar = document.createElement("div");
   bar.className = "percentage-bar";
-  for (const [, { sectorIdx, words }] of Object.entries(groups)) {
+  for (const [sectorName, { sectorIdx, words }] of Object.entries(groups)) {
     const pct = (words.length / totalSelected) * 100;
     const seg = document.createElement("div");
     const [r, g, b] = langData.sectors[sectorIdx].baseColor;
     seg.style.width = pct + "%";
     seg.style.background = `rgb(${r},${g},${b})`;
+    seg.title = `${sectorName} (${Math.round(pct)}%)`;
     bar.appendChild(seg);
   }
   barLi.appendChild(bar);
@@ -432,7 +434,7 @@ document.getElementById("btn-export-png").addEventListener("click", async () => 
   }
 });
 
-// Export PDF: share on mobile, download on desktop
+// Export PDF: generate real PDF via jsPDF, fallback to print dialog
 document.getElementById("btn-export-pdf").addEventListener("click", async () => {
   exportMenu.classList.add("hidden");
   trackExportPDF(currentLang);
@@ -440,24 +442,23 @@ document.getElementById("btn-export-pdf").addEventListener("click", async () => 
   const ui = langData.ui;
   const groups = wheel.getSelectedGroups();
 
-  if (isMobile()) {
-    // On mobile: generate HTML, render as blob for sharing
+  try {
+    const { blob, filename } = await generatePDF(wheel, currentLang, ui, groups);
+    if (isMobile()) {
+      const file = new File([blob], filename, { type: 'application/pdf' });
+      const shared = await shareFile(file, ui.appTitle);
+      if (!shared) downloadBlob(blob, filename);
+    } else {
+      downloadBlob(blob, filename);
+    }
+  } catch (err) {
+    console.warn('jsPDF unavailable, falling back to print:', err);
     const html = generatePDFHtml(wheel, currentLang, ui, groups);
-    const htmlBlob = new Blob([html], { type: 'text/html' });
-    const file = new File([htmlBlob], `emotion-wheel-${currentLang}.html`, { type: 'text/html' });
-    const shared = await shareFile(file, ui.appTitle);
-    if (!shared) {
-      // Fallback: open print window
-      const win = window.open("");
+    const win = window.open('');
+    if (win) {
       win.document.write(html);
       win.document.close();
     }
-  } else {
-    // Desktop: open in print window for PDF save
-    const html = generatePDFHtml(wheel, currentLang, ui, groups);
-    const win = window.open("");
-    win.document.write(html);
-    win.document.close();
   }
 });
 

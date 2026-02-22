@@ -1,10 +1,12 @@
 /**
- * Export module – handles PNG generation, PDF generation, and share/download logic.
+ * Export module – handles PNG generation, real PDF generation (jsPDF),
+ * HTML-print fallback, and share/download logic.
  */
 
-/**
- * Build a formatted date/time string for exports.
- */
+// ---------------------------------------------------------------------------
+// HELPERS
+// ---------------------------------------------------------------------------
+
 function formatDateTime(lang, ui) {
   const now = new Date();
   const dateStr = now.toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' });
@@ -13,33 +15,111 @@ function formatDateTime(lang, ui) {
 }
 
 /**
+ * Compute percentage distribution data from selected groups.
+ */
+function computePercentages(groups, sectors) {
+  if (!groups) return null;
+  const total = Object.values(groups).reduce((s, g) => s + g.words.length, 0);
+  const entries = Object.entries(groups).map(([name, { sectorIdx, words }]) => ({
+    name,
+    sectorIdx,
+    words,
+    count: words.length,
+    pct: words.length / total,
+    pctRound: Math.round((words.length / total) * 100),
+    color: sectors[sectorIdx].baseColor,
+  }));
+  return { total, entries };
+}
+
+/**
+ * Draw a percentage bar on a 2D canvas context with rounded ends.
+ */
+function drawPercentageBar(c, pctData, x, y, w, h) {
+  c.save();
+  c.beginPath();
+  const r = h / 2;
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.clip();
+  let bx = x;
+  for (const entry of pctData.entries) {
+    const segW = w * entry.pct;
+    c.fillStyle = `rgb(${entry.color[0]},${entry.color[1]},${entry.color[2]})`;
+    c.fillRect(bx, y, segW + 1, h);
+    bx += segW;
+  }
+  c.restore();
+}
+
+/**
+ * Wrap comma-separated text into lines that fit within maxWidth (canvas).
+ */
+function getWrappedLines(c, text, maxWidth) {
+  const pieces = text.split(', ');
+  const lines = [];
+  let current = '';
+  for (const piece of pieces) {
+    const test = current ? current + ', ' + piece : piece;
+    if (c.measureText(test).width > maxWidth && current) {
+      lines.push(current);
+      current = piece;
+    } else {
+      current = test;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+// ---------------------------------------------------------------------------
+// PNG EXPORT
+// ---------------------------------------------------------------------------
+
+/**
  * Generate a decorated PNG as a Blob.
+ * High resolution (3x DPR, 1800px logical width).
+ * Includes title, datetime, wheel, percentage bar, and emotion list.
  * Returns { blob, filename }.
  */
 export async function generatePNG(wheel, lang, ui, groups) {
-  const wheelDataUrl = wheel.exportDataURL();
+  const pctData = computePercentages(groups, wheel.sectors);
+
+  const dpr = 3;
+  const W = 1800;
+  const pad = 60;
+  const wheelSize = W - pad * 2;
+  const textMaxW = W - pad * 2 - 30;
+
+  // --- Height pre-calculation (measuring context) ---
+  const mc = document.createElement('canvas').getContext('2d');
+  let H = pad + 64 + 38 + 36 + 20 + wheelSize + 30;
+
+  if (pctData) {
+    H += 20 + 24; // bar + gap
+    mc.font = '18px "Segoe UI", system-ui, sans-serif';
+    for (const entry of pctData.entries) {
+      H += 32; // header
+      const lines = getWrappedLines(mc, entry.words.join(', '), textMaxW);
+      H += lines.length * 24 + 14;
+    }
+  }
+  H += pad;
+
+  // --- Export wheel at exact resolution needed ---
+  const neededPx = wheelSize * dpr;
+  const exportScale = Math.ceil(neededPx / wheel.worldSize);
+  const wheelDataUrl = wheel.exportDataURL(exportScale);
   const wheelImg = new Image();
   wheelImg.src = wheelDataUrl;
   await new Promise(r => { wheelImg.onload = r; });
 
   const { full: dateTimeStr } = formatDateTime(lang, ui);
 
-  const dpr = 2; // always export at 2x for quality
-  const W = 1200;
-  const pad = 40;
-  const wheelSize = W - pad * 2;
-  let H = pad + 60 + 28 + 24 + pad + wheelSize + pad;
-
-  let listLines = [];
-  if (groups) {
-    listLines.push('');
-    for (const [sectorName, { words }] of Object.entries(groups)) {
-      listLines.push(`▸ ${sectorName}`);
-      listLines.push(`  ${words.join(', ')}`);
-    }
-    H += listLines.length * 26 + pad;
-  }
-
+  // --- Create canvas ---
   const offscreen = document.createElement('canvas');
   offscreen.width = W * dpr;
   offscreen.height = H * dpr;
@@ -54,51 +134,62 @@ export async function generatePNG(wheel, lang, ui, groups) {
 
   // Title
   c.fillStyle = '#222';
-  c.font = 'bold 36px "Segoe UI", system-ui, sans-serif';
+  c.font = 'bold 44px "Segoe UI", system-ui, sans-serif';
   c.textAlign = 'center';
-  c.fillText(ui.appTitle, W / 2, y + 36);
-  y += 52;
+  c.fillText(ui.appTitle, W / 2, y + 44);
+  y += 64;
 
   // Date/time
   c.fillStyle = '#666';
-  c.font = '18px "Segoe UI", system-ui, sans-serif';
-  c.fillText(`${ui.exportDateLabel}: ${dateTimeStr}`, W / 2, y + 18);
-  y += 32;
+  c.font = '22px "Segoe UI", system-ui, sans-serif';
+  c.fillText(`${ui.exportDateLabel}: ${dateTimeStr}`, W / 2, y + 22);
+  y += 38;
 
   // Description
   c.fillStyle = '#888';
-  c.font = '14px "Segoe UI", system-ui, sans-serif';
-  c.fillText(ui.appDescription, W / 2, y + 14);
-  y += 32;
+  c.font = '18px "Segoe UI", system-ui, sans-serif';
+  c.fillText(ui.appDescription, W / 2, y + 18);
+  y += 36;
+
+  y += 20;
 
   // Wheel image
   c.drawImage(wheelImg, pad, y, wheelSize, wheelSize);
-  y += wheelSize + 20;
+  y += wheelSize + 30;
 
-  // Selected emotions
-  if (groups && listLines.length > 0) {
+  // Percentage bar + grouped emotions
+  if (pctData) {
+    const barW = W - pad * 2;
+    const barH = 20;
+    drawPercentageBar(c, pctData, pad, y, barW, barH);
+    y += barH + 24;
+
     c.textAlign = 'left';
-    for (const line of listLines) {
-      if (line === '') { y += 8; continue; }
-      if (line.startsWith('▸')) {
-        c.fillStyle = '#444';
-        c.font = 'bold 18px "Segoe UI", system-ui, sans-serif';
-      } else {
-        c.fillStyle = '#555';
-        c.font = '16px "Segoe UI", system-ui, sans-serif';
+    for (const entry of pctData.entries) {
+      // Color dot
+      const [r, g, b] = entry.color;
+      c.fillStyle = `rgb(${r},${g},${b})`;
+      c.beginPath();
+      c.arc(pad + 14, y + 14, 7, 0, Math.PI * 2);
+      c.fill();
+
+      // Header
+      c.fillStyle = '#333';
+      c.font = 'bold 22px "Segoe UI", system-ui, sans-serif';
+      c.fillText(`${entry.name} (${entry.pctRound}%)`, pad + 30, y + 20);
+      y += 32;
+
+      // Words (wrapped)
+      c.fillStyle = '#555';
+      c.font = '18px "Segoe UI", system-ui, sans-serif';
+      const lines = getWrappedLines(c, entry.words.join(', '), textMaxW);
+      for (const line of lines) {
+        c.fillText(line, pad + 30, y + 18);
+        y += 24;
       }
-      c.fillText(line, pad + 10, y + 18);
-      y += 26;
+      y += 14;
     }
   }
-
-  // Footer line
-  c.strokeStyle = '#ddd';
-  c.lineWidth = 1;
-  c.beginPath();
-  c.moveTo(pad, H - pad + 10);
-  c.lineTo(W - pad, H - pad + 10);
-  c.stroke();
 
   const dataUrl = offscreen.toDataURL('image/png');
   const blob = await (await fetch(dataUrl)).blob();
@@ -106,24 +197,156 @@ export async function generatePNG(wheel, lang, ui, groups) {
   return { blob, filename };
 }
 
+// ---------------------------------------------------------------------------
+// PDF EXPORT (jsPDF)
+// ---------------------------------------------------------------------------
+
 /**
- * Generate a PDF as a Blob using jsPDF-free approach:
- * Render an HTML page, print to PDF. On mobile, returns the wheel page HTML for sharing.
- * Actually: we generate a full HTML string that can be opened or converted.
+ * Dynamically load jsPDF library from CDN.
+ * Returns the jsPDF constructor.
+ */
+async function loadJsPDF() {
+  if (window.jspdf) return window.jspdf.jsPDF;
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/jspdf@4.2.0/dist/jspdf.umd.min.js';
+    const timeout = setTimeout(() => reject(new Error('jsPDF load timeout')), 10000);
+    script.onload = () => { clearTimeout(timeout); resolve(window.jspdf.jsPDF); };
+    script.onerror = () => { clearTimeout(timeout); reject(new Error('Failed to load jsPDF CDN')); };
+    document.head.appendChild(script);
+  });
+}
+
+/**
+ * Generate a real PDF file as a Blob using jsPDF.
+ * Includes title, datetime, wheel (high-res raster), percentage bar, and emotion list.
+ * Returns { blob, filename }.
+ * Throws if jsPDF cannot be loaded (caller should fallback to HTML print).
+ */
+export async function generatePDF(wheel, lang, ui, groups) {
+  const JsPDF = await loadJsPDF();
+
+  const wheelDataUrl = wheel.exportDataURL(4);
+  const { full: dateTimeStr } = formatDateTime(lang, ui);
+  const pctData = computePercentages(groups, wheel.sectors);
+
+  const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = 210;
+  const pageH = 297;
+  const margin = 15;
+  const contentW = pageW - margin * 2;
+
+  let y = margin;
+
+  // Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(51, 51, 51);
+  doc.text(ui.appTitle, pageW / 2, y + 8, { align: 'center' });
+  y += 14;
+
+  // Date/time
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(119, 119, 119);
+  doc.text(`${ui.exportDateLabel}: ${dateTimeStr}`, pageW / 2, y + 4, { align: 'center' });
+  y += 8;
+
+  // Description
+  doc.setFontSize(8);
+  doc.setTextColor(153, 153, 153);
+  const descLines = doc.splitTextToSize(ui.appDescription, contentW - 20);
+  doc.text(descLines, pageW / 2, y + 4, { align: 'center' });
+  y += descLines.length * 3.5 + 6;
+
+  // Wheel image (centered)
+  const wheelMM = 155;
+  const wheelX = (pageW - wheelMM) / 2;
+  doc.addImage(wheelDataUrl, 'PNG', wheelX, y, wheelMM, wheelMM);
+  y += wheelMM + 6;
+
+  // Percentage bar + emotions
+  if (pctData) {
+    const barH = 3.5;
+    let bx = margin;
+    for (const entry of pctData.entries) {
+      const segW = contentW * entry.pct;
+      doc.setFillColor(entry.color[0], entry.color[1], entry.color[2]);
+      doc.rect(bx, y, segW, barH, 'F');
+      bx += segW;
+    }
+    y += barH + 5;
+
+    // Emotion groups
+    for (const entry of pctData.entries) {
+      if (y > pageH - margin - 15) {
+        doc.addPage();
+        y = margin;
+      }
+
+      // Color dot
+      doc.setFillColor(entry.color[0], entry.color[1], entry.color[2]);
+      doc.circle(margin + 2.5, y + 1.8, 1.5, 'F');
+
+      // Header
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(68, 68, 68);
+      doc.text(`${entry.name} (${entry.pctRound}%)`, margin + 7, y + 3.5);
+      y += 6;
+
+      // Words
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(85, 85, 85);
+      const wordsText = entry.words.join(', ');
+      const wordLines = doc.splitTextToSize(wordsText, contentW - 12);
+      for (const line of wordLines) {
+        if (y > pageH - margin - 5) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(line, margin + 7, y + 3);
+        y += 4.5;
+      }
+      y += 3;
+    }
+  }
+
+  const blob = doc.output('blob');
+  const filename = `emotion-wheel-${lang}.pdf`;
+  return { blob, filename };
+}
+
+// ---------------------------------------------------------------------------
+// PDF HTML FALLBACK (used when jsPDF CDN is unavailable)
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate PDF as HTML string — fallback for offline / CDN failure.
+ * Opens in a print dialog for manual "Save as PDF".
  */
 export function generatePDFHtml(wheel, lang, ui, groups) {
   const svgContent = wheel.exportSVG();
   const { full: dateTimeStr } = formatDateTime(lang, ui);
+  const pctData = computePercentages(groups, wheel.sectors);
 
-  let listingHtml = "";
-  if (groups) {
-    listingHtml += '<div class="page-break"></div>';
-    listingHtml += '<div class="listing-page">';
-    listingHtml += `<h1>${ui.pdfListTitle}</h1>`;
-    listingHtml += `<p class="date">${ui.exportDateLabel}: ${dateTimeStr}</p>`;
-    for (const [sectorName, { words }] of Object.entries(groups)) {
-      listingHtml += `<h2>${sectorName}</h2><ul>`;
-      for (const w of words) listingHtml += `<li>${w}</li>`;
+  let pctBarHtml = '';
+  let listingHtml = '';
+
+  if (pctData) {
+    pctBarHtml = '<div class="pct-bar">';
+    for (const entry of pctData.entries) {
+      const [r, g, b] = entry.color;
+      pctBarHtml += `<div style="width:${entry.pct * 100}%;background:rgb(${r},${g},${b})" title="${entry.name} (${entry.pctRound}%)"></div>`;
+    }
+    pctBarHtml += '</div>';
+
+    listingHtml += '<div class="listing">';
+    for (const entry of pctData.entries) {
+      const [r, g, b] = entry.color;
+      listingHtml += `<h2><span class="dot" style="background:rgb(${r},${g},${b})"></span>${entry.name} (${entry.pctRound}%)</h2><ul>`;
+      for (const w of entry.words) listingHtml += `<li>${w}</li>`;
       listingHtml += '</ul>';
     }
     listingHtml += '</div>';
@@ -133,7 +356,7 @@ export function generatePDFHtml(wheel, lang, ui, groups) {
 <html>
 <head><meta charset="UTF-8"><title>${ui.pdfTitle}</title>
 <style>
-  @media print { .page-break { page-break-before: always; } }
+  @media print { .no-print { display: none; } }
   body { margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #222; }
   .wheel-page {
     display: flex; flex-direction: column; align-items: center;
@@ -143,11 +366,12 @@ export function generatePDFHtml(wheel, lang, ui, groups) {
   .wheel-page .date { font-size: 0.95rem; color: #777; margin: 0 0 4px; }
   .wheel-page .desc { font-size: 0.85rem; color: #999; margin: 0 0 20px; max-width: 600px; text-align: center; }
   .wheel-page svg { max-width: 90vw; max-height: 72vh; }
-  .listing-page { padding: 40px 60px; }
-  .listing-page h1 { font-size: 1.6rem; border-bottom: 2px solid #ddd; padding-bottom: 8px; margin-bottom: 4px; }
-  .listing-page .date { font-size: 0.9rem; color: #777; margin-bottom: 16px; }
-  .listing-page h2 { font-size: 1.1rem; text-transform: uppercase; margin: 16px 0 6px; color: #555; }
-  .listing-page li { font-size: 0.95rem; margin: 2px 0; }
+  .pct-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 16px 40px 8px; }
+  .pct-bar > div { min-width: 2px; }
+  .listing { padding: 8px 60px 40px; }
+  .listing h2 { font-size: 1.1rem; text-transform: uppercase; margin: 14px 0 4px; color: #555; display: flex; align-items: center; gap: 8px; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .listing li { font-size: 0.95rem; margin: 2px 0; }
 </style>
 </head>
 <body>
@@ -157,20 +381,18 @@ export function generatePDFHtml(wheel, lang, ui, groups) {
     <p class="desc">${ui.appDescription}</p>
     ${svgContent}
   </div>
+  ${pctBarHtml}
   ${listingHtml}
 </body>
 </html>`;
 }
 
+// ---------------------------------------------------------------------------
+// CLIPBOARD / SHARING HELPERS
+// ---------------------------------------------------------------------------
+
 /**
  * Format selected groups as a markdown-style list for clipboard.
- * Example:
- *   *Medo*
- *   - Ansioso
- *   - Preocupado
- *
- *   *Alegria*
- *   - Feliz
  */
 export function formatAsMarkdownList(groups) {
   if (!groups) return '';
@@ -180,7 +402,7 @@ export function formatAsMarkdownList(groups) {
     for (const w of words) {
       parts.push(`- ${w}`);
     }
-    parts.push(''); // blank line between sections
+    parts.push('');
   }
   return parts.join('\n').trim();
 }
