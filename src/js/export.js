@@ -318,7 +318,21 @@ export async function generatePDF(wheel, lang, ui, groups) {
   doc.setTextColor(153, 153, 153);
   const descLines = doc.splitTextToSize(ui.appDescription, contentW - 20);
   doc.text(descLines, pageW / 2, y + 4, { align: 'center' });
-  y += descLines.length * 3.5 + 6;
+  y += descLines.length * 3.5 + 4;
+
+  // Interactive link (friendly, at the top)
+  const linkLabel = ui.pdfInteractiveLink || 'Click here to open this report in interactive mode';
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(0, 102, 204);
+  const linkW = doc.getTextWidth(linkLabel);
+  const linkX = (pageW - linkW) / 2;
+  doc.textWithLink(linkLabel, linkX, y + 3, { url: shareUrl });
+  // Underline
+  doc.setDrawColor(0, 102, 204);
+  doc.setLineWidth(0.2);
+  doc.line(linkX, y + 3.5, linkX + linkW, y + 3.5);
+  y += 8;
 
   // Wheel as vectorized SVG → PDF paths (not rasterized PNG)
   const wheelMM = 155;
@@ -378,13 +392,6 @@ export async function generatePDF(wheel, lang, ui, groups) {
     }
   }
 
-  // Adiciona a URL interativa no rodapé do PDF
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(0, 102, 204);
-  if (y > 270) { doc.addPage(); }
-  doc.textWithLink(shareUrl, margin, 290, { url: shareUrl });
-
   const blob = doc.output('blob');
   const filename = `emotion-wheel-${lang}_${formatFileDateTime()}.pdf`;
   return { blob, filename, url: shareUrl };
@@ -401,6 +408,8 @@ export async function generatePDF(wheel, lang, ui, groups) {
 export function generatePDFHtml(wheel, lang, ui, groups) {
   const svgContent = wheel.exportSVG();
   const { full: dateTimeStr } = formatDateTime(lang, ui);
+  const shareUrl = buildShareURL(wheel.selected);
+  const linkLabel = ui.pdfInteractiveLink || 'Click here to open this report in interactive mode';
   const pctData = computePercentages(groups, wheel.sectors);
 
   let pctBarHtml = '';
@@ -436,7 +445,9 @@ export function generatePDFHtml(wheel, lang, ui, groups) {
   }
   .wheel-page h1 { font-size: 2rem; margin: 0 0 4px; color: #333; }
   .wheel-page .date { font-size: 0.95rem; color: #777; margin: 0 0 4px; }
-  .wheel-page .desc { font-size: 0.85rem; color: #999; margin: 0 0 20px; max-width: 600px; text-align: center; }
+  .wheel-page .desc { font-size: 0.85rem; color: #999; margin: 0 0 8px; max-width: 600px; text-align: center; }
+  .wheel-page .interactive-link { font-size: 0.9rem; color: #0066cc; text-decoration: underline; margin: 0 0 16px; }
+  .wheel-page .interactive-link a { color: #0066cc; text-decoration: underline; }
   .wheel-page svg { max-width: 90vw; max-height: 72vh; }
   .pct-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 16px 40px 8px; }
   .pct-bar > div { min-width: 2px; }
@@ -451,6 +462,7 @@ export function generatePDFHtml(wheel, lang, ui, groups) {
     <h1>${ui.appTitle}</h1>
     <p class="date">${dateTimeStr}</p>
     <p class="desc">${ui.appDescription}</p>
+    <p class="interactive-link"><a href="${shareUrl}">${linkLabel}</a></p>
     ${svgContent}
   </div>
   ${pctBarHtml}

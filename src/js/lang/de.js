@@ -17,67 +17,68 @@ export default {
     appTitle: "Gefühlsrad",
     appDescription: "Wählen Sie die Emotionen aus, die Sie fühlen, indem Sie darauf klicken. Exportieren oder teilen Sie, um festzuhalten, wie Sie sich fühlen.",
     exportDateLabel: "Datum und Uhrzeit",
-    btnShare: "🔗 Teilen"
+    btnShare: "🔗 Teilen",
+    pdfInteractiveLink: "Klicken Sie hier, um diesen Bericht im interaktiven Modus zu öffnen"
   },
   sectors: [
     {
       name: "Angst",
-      baseColor: [120, 0, 180],
       rings: [
-        ["besorgt","unsicher","beunruhigt","angespannt","ängstlich","unruhig","nervös","wachsam","verletzlich","vorsichtig"],
-        ["ängstlich","eingeschüchtert","bedroht","unwohl","unter Druck","aufmerksam","verwirrt","schutzlos","gefährdet","zögerlich"],
-        ["verängstigt","panisch","erschrocken","gebrochen","verstört","verzweifelt","zitternd","geschockt","einsam","unkontrolliert"],
-        ["Panik","purer Horror","Delirium","Totalpanik","Zusammenbruch","Hoffnungslosigkeit","Abgrund","Flucht","Vernichtung","absolute Angst"],
+        ["Ängstlich", "Unsicher", "Bedroht"],
+        ["Besorgt", "Beunruhigt", "Vorsichtig", "Furchtsam", "Unwohl", "Verletzlich"],
+        ["Angespannt", "Nervös", "Unruhig", "Wachsam", "Zögerlich", "Erschrocken", "Alarmiert", "Schutzlos", "Unwohl", "Unter Druck"],
+        ["Verängstigt", "Entsetzt", "Gelähmt", "Im Schock", "Verstört", "In Panik", "Grauen", "Verzweifelt", "Phobisch", "Hilflos",
+        "Terror", "Hysterie", "Totale Panik", "Boden los", "Flucht", "Zusammenbruch", "Außer Kontrolle", "Absolute Angst"]
       ],
     },
     {
       name: "Wut",
-      baseColor: [220, 40, 40],
       rings: [
-        ["gereizt","genervt","verärgert","ungeduldig","mürrisch","erregt","frustriert","Verdruss","argwöhnisch","misstrauisch"],
-        ["wütend","erzürnt","gedemütigt","feindselig","empört","aggressiv","aufgebracht","neidisch","rachsüchtig","angriffslustig"],
-        ["rasend","tobend","rebellisch","explosiv","gekränkt","verbittert","hasserfüllt","vergeltend","verächtlich","fanatisch"],
-        ["Raserei","Hass","außer sich","tobsüchtig","gewalttätig","grausam","entflammt","besessen","wahnsinnig","tobend"],
+        ["Gereizt", "Beleidigt", "Frustriert"],
+        ["Genervt", "Verstimmt", "Ungeduldig", "Empört", "Verdrossen", "Provoziert"],
+        ["Aufgebracht", "Erregt", "Skeptisch", "Misstrauisch", "Böse", "Zornig", "Wütend", "Feindselig", "Eifersüchtig", "Aggressiv"],
+        ["Rasend", "Empört", "Cholerisch", "Explosiv", "Hasserfüllt", "Rachsüchtig", "Verachtung", "Intolerant", "Verbittert", "Voller Groll",
+        "Furie", "Hass", "Außer sich", "Tobsüchtig", "Unnachgiebig", "Besessen", "Fanatisch", "Unkontrolliert"]
       ],
     },
     {
       name: "Trauer",
-      baseColor: [50, 100, 200],
       rings: [
-        ["entmutigt","bedrückt","unglücklich","einsam","sehnend","müde","leer","wehmütig","gleichgültig","bedürftig"],
-        ["traurig","verletzt","enttäuscht","desillusioniert","trauernd","hilflos","schuldig","reuevoll","beschämt","verlassen"],
-        ["deprimiert","zerstört","untröstlich","erniedrigt","in Trauer","pessimistisch","trauernd","leidend","gequält","unterdrückt"],
-        ["Verzweiflung","Öde","zertrümmert","sinnlos","tiefer Schmerz","Abgrund","eingestürzt","vernichtet","verschlungen","zerbrochen"],
+        ["Entmutigt", "Einsam", "Verletzt"],
+        ["Müde", "Leer", "Sehnsüchtig", "Bedürftig", "Enttäuscht", "Hilflos"],
+        ["Niedergeschlagen", "Melancholisch", "Unmotiviert", "Traurig", "Desillusioniert", "Betrübt", "Ohnmächtig", "Schuldig", "Reuevoll", "Beschämt"],
+        ["Gequält", "Bedrückt", "In Trauer", "Unterdrückt", "Untröstlich", "Zerstört", "Hoffnungslos", "Tiefer Schmerz", "Sinnlos", "Öde",
+        "Zerbrochen", "Verzweiflung", "Abgrund", "Eingestürzt", "Vernichtet", "Aufgelöst"]
       ],
     },
     {
       name: "Überraschung",
-      baseColor: [255, 180, 0],
       rings: [
-        ["neugierig","interessiert","nachdenklich","skeptisch","abgelenkt","unsicher","rätselhaft","fragend","unerwartet","wachgeworden"],
-        ["überrascht","erstaunt","verwirrt","ratlos","beeindruckt","sprachlos","fasziniert","erschüttert","überwältigt","überrumpelt"],
-        ["verblüfft","Mund offen","bestürzt","versteinert","ehrfürchtig","verloren","unglaublich","gelähmt","staunend","aufgewühlt"],
-        ["erschüttert","im Schock","ohnmächtig","aufgelöst","Schock","Einsturz","Schwindel","plötzliche Angst","Explosion","unfassbar"],
+        ["Neugierig", "Verblüfft", "Schockiert"],
+        ["Fasziniert", "Aufmerksam", "Unsicher", "Verwirrt", "Beeindruckt", "Fragend"],
+        ["Überrascht", "Erstaunt", "Fassungslos", "Sprachlos", "Perplex", "Ungläubig", "Aufgewühlt", "Skeptisch", "Desorientiert", "Gelähmt"],
+        ["Mund offen", "Bestürzt", "Fassungslos", "Alarmiert", "Aufgewühlt", "Im Schock", "Erschüttert", "Zusammengezuckt", "Plötzliche Angst", "Zusammenbruch",
+        "Explodiert", "Unvorstellbar", "Schwindelig", "Überwältigt", "Aus dem Gleichgewicht", "Starr"]
       ],
     },
     {
       name: "Freude",
-      baseColor: [60, 180, 75],
       rings: [
-        ["ruhig","erleichtert","behaglich","stabil","sorglos","leicht","dankbar","zufrieden","gut","okay"],
-        ["glücklich","froh","begeistert","fröhlich","hoffnungsvoll","optimistisch","enthusiastisch","interessiert","inspiriert","aufgeregt"],
-        ["strahlend","bezaubert","angetrieben","lebendig","energiegeladen","begeistert","triumphierend","stolz","jubelnd","leidenschaftlich"],
-        ["Ekstase","Jubel","Glückseligkeit","verzaubert","grenzenloses Glück","Vollkommenheit","überfließend","wunderbar","glorreich","Gipfel"],
+        ["Ruhig", "Froh", "Begeistert"],
+        ["Erleichtert", "Entspannt", "Zufrieden", "Dankbar", "Heiter", "Optimistisch"],
+        ["Behaglich", "Locker", "Leicht", "Gut", "Lebhaft", "Amüsiert", "Interessiert", "Motiviert", "Aufgeregt", "Energiegeladen", "Lebendig"],
+        ["Strahlend", "Bezaubert", "Inspiriert", "Begeistert", "Triumphierend", "Stolz", "Euphorisch", "Leidenschaftlich", "Verzückt", "Beseelt",
+        "Ekstase", "Jubel", "Exaltation", "Fülle", "Überfließend", "Glorreich", "Gipfel"]
       ],
     },
     {
       name: "Liebe",
-      baseColor: [230, 80, 150],
       rings: [
-        ["Zuneigung","Verbundenheit","Zärtlichkeit","Willkommen","Fürsorge","Mitgefühl","Freundschaft","Respekt","Güte","Bindung"],
-        ["geliebt","geschätzt","wertvoll","vertrauend","intim","mitfühlend","beschützend","hingebungsvoll","dankbar","Zugehörigkeit"],
-        ["leidenschaftlich","ergeben","bewundernd","bezaubert","Verlangen","verpflichtet","Sehnsucht","Verehrung","Faszination","Wiedersehen"],
-        ["Anbetung","Verehrung","Hingabe","tiefe Liebe","Verschmelzen","Einheit","bedingungslose Liebe","Vollkommenheit","Heiligkeit","Ganzheit"],
+        ["Herzlich", "Sehnsucht", "Verbunden"],
+        ["Zuneigung", "Zärtlichkeit", "Anziehung", "Bewunderung", "Nostalgie", "Zugehörigkeit"],
+        ["Güte", "Freundlichkeit", "Respekt", "Willkommen", "Engagiert", "Hingegeben", "Vertrauen", "Intimität", "Dankbarkeit", "Unterstützend", "Mitgefühl"],
+        ["Faszination", "Ehrerbietung", "Bezauberung", "Hingabe", "Verehrung", "Anbetung", "Tiefe Liebe", "Bedingungslose Liebe", "Ganzheit", "Heilig",
+        "Vollständig geliebt", "Vereinigung", "Verschmelzung", "Schutz", "Ergeben", "Romantisch"]
       ],
     },
   ]

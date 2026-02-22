@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^node -c src/main\\.js && node -c src/js/export\\.js && echo \"All files OK\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

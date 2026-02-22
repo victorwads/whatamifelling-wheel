@@ -17,7 +17,8 @@ export default {
     appTitle: "情绪之轮",
     appDescription: "点击选择您正在感受的情绪。导出或分享以记录您的感受。",
     exportDateLabel: "日期和时间",
-    btnShare: "🔗 分享"
+    btnShare: "🔗 分享",
+    pdfInteractiveLink: "点击此处以交互模式打开此报告"
   },
   sectors: [
     {

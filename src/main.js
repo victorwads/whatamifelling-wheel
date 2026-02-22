@@ -25,6 +25,12 @@ function getBrowserLanguage() {
   return "pt";
 }
 
+// Apply saved theme on load
+const savedTheme = localStorage.getItem('emotion-wheel-theme');
+if (savedTheme === 'dark') {
+  document.body.classList.add('dark');
+}
+
 // Current language: prefer localStorage, then browser detection
 let currentLang = localStorage.getItem('emotion-wheel-lang');
 if (!currentLang || !LANGUAGES[currentLang]) currentLang = getBrowserLanguage();
@@ -392,6 +398,18 @@ function updateSidebar() {
 // ---------------------------------------------------------------------------
 // 9. BUTTONS — Clear, Copy, Export
 // ---------------------------------------------------------------------------
+
+// Toggle dark/light theme
+document.getElementById("btn-theme").addEventListener("click", () => {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('emotion-wheel-theme', isDark ? 'dark' : 'light');
+  document.querySelector('#btn-theme i').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+});
+
+// Sync icon on load after toggling
+if (savedTheme === 'dark') {
+  document.querySelector('#btn-theme i').className = 'fa-solid fa-sun';
+}
 
 // Clear selection
 document.getElementById("btn-clear").addEventListener("click", () => {

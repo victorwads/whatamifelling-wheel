@@ -17,7 +17,8 @@ export default {
     appTitle: "感情の輪",
     appDescription: "感じている感情をクリックして選択してください。エクスポートまたは共有して、あなたの気持ちを記録しましょう。",
     exportDateLabel: "日時",
-    btnShare: "🔗 共有"
+    btnShare: "🔗 共有",
+    pdfInteractiveLink: "ここをクリックしてインタラクティブモードでレポートを開く"
   },
   sectors: [
     {

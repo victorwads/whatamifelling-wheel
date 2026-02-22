@@ -17,68 +17,68 @@ export default {
     appTitle: "Roda das Emoções",
     appDescription: "Selecione as emoções que você está sentindo clicando nelas. Exporte ou compartilhe para registrar como você se sente.",
     exportDateLabel: "Data e hora",
-    btnShare: "🔗 Compartilhar"
+    btnShare: "🔗 Compartilhar",
+    pdfInteractiveLink: "Clique aqui para abrir este relatório no modo interativo"
   },
   sectors: [
     {
       name: "Medo",
-      baseColor: [120, 0, 180],
       rings: [
-        ["Apreensivo","Inseguro","Preocupado","Tenso","Receoso","Inquieto","Nervoso","Cauteloso","Vulnerável","Alerta"],
-        ["Ansioso","Assustado","Ameaçado","Desconfortável","Pressionado","Alarmado","Perturbado","Desprotegido","Em risco","Hesitante"],
-        ["Aterrorizado","Apavorado","Horrorizado","Paralisado","Em pânico","Desesperado","Fóbico","Em choque","Pavor","Descontrolado"],
-        ["Terror","Pavor extremo","Histeria","Pânico total","Colapso","Desespero","Sem chão","Fuga","Aniquilação","Medo absoluto"],
+        ["Ansioso", "Ameaçado", "Inseguro"],
+        ["Apreensivo", "Preocupado", "Receoso", "Vulnerável", "Alerta", "Hesitante"],
+        ["Tenso", "Nervoso", "Inquieto", "Cauteloso", "Assustado", "Alarmado", "Desprotegido", "Desconfortável", "Pressionado", "Em risco"],
+        ["Apavorado", "Aterrorizado", "Horrorizado", "Paralisado", "Em choque", "Perturbado", "Pavor", "Em pânico", "Fóbico", "Desesperado",
+        "Terror", "Histeria", "Pânico total", "Sem chão", "Fuga", "Colapso", "Descontrolado", "Medo absoluto"]
       ],
     },
     {
       name: "Raiva",
-      baseColor: [220, 40, 40],
       rings: [
-        ["Irritado","Incomodado","Contrariado","Impaciente","Chateado","Agitado","Frustrado","Ressentido","Cético","Desconfiado"],
-        ["Bravo","Zangado","Ofendido","Hostil","Indignado","Ultrajado","Provocado","Rancoroso","Ciumento","Agressivo"],
-        ["Furioso","Enraivecido","Revoltado","Colérico","Explosivo","Amargo","Odioso","Vingativo","Desprezo","Intolerante"],
-        ["Fúria","Ódio","Fora de si","Irado","Violento","Implacável","Raivoso","Descontrolado","Possesso","Incendiado"],
+        ["Irritado", "Ofendido", "Frustrado"],
+        ["Incomodado", "Contrariado", "Impaciente", "Indignado", "Ressentido", "Provocado"],
+        ["Chateado", "Agitado", "Cético", "Desconfiado", "Bravo", "Zangado", "Ultrajado", "Hostil", "Ciumento", "Agressivo"],
+        ["Enraivecido", "Revoltado", "Colérico", "Explosivo", "Odioso", "Vingativo", "Desprezo", "Intolerante", "Amargo", "Rancoroso",
+        "Fúria", "Ódio", "Fora de si", "Irado", "Implacável", "Possesso", "Raivoso", "Descontrolado"]
       ],
     },
     {
       name: "Tristeza",
-      baseColor: [50, 100, 200],
       rings: [
-        ["Desanimado","Abatido","Chateado","Solitário","Saudoso","Cansado","Vazio","Melancólico","Desmotivado","Carente"],
-        ["Triste","Magoado","Desapontado","Desiludido","Pesaroso","Impotente","Culpado","Arrependido","Envergonhado","Desamparado"],
-        ["Deprimido","Devastado","Inconsolável","Humilhado","Lamentoso","Desesperançoso","Luto","Aflito","Angustiado","Oprimido"],
-        ["Desespero","Desolado","Arrasado","Sem sentido","Profunda dor","Abismo","Desmoronado","Aniquilado","Trágado","Desfeito"],
+        ["Desanimado", "Solitário", "Magoado"],
+        ["Cansado", "Vazio", "Saudoso", "Carente", "Desapontado", "Desamparado"],
+        ["Abatido", "Melancólico", "Desmotivado", "Triste", "Desiludido", "Pesaroso", "Impotente", "Culpado", "Arrependido", "Envergonhado"],
+        ["Angustiado", "Aflito", "Luto", "Oprimido", "Inconsolável", "Devastado", "Desesperançoso", "Profunda dor", "Sem sentido", "Desolado",
+        "Arrasado", "Desespero", "Abismo", "Desmoronado", "Aniquilado", "Desfeito"]
       ],
     },
     {
       name: "Surpresa",
-      baseColor: [255, 180, 0],
       rings: [
-        ["Curioso","Intrigado","Atento","Desconfiado","Distraído","Incerto","Suspenso","Questionador","Inesperado","Desperto"],
-        ["Surpreso","Espantado","Perplexo","Confuso","Impressionado","Sem palavras","Tocado","Estupefato","Chocado","Atônito"],
-        ["Assombrado","Aboquiaberto","Alarmado","Estarrecido","Aterrorizado","Desnorteado","Incrédulo","Paralisado","Espanto","Perturbado"],
-        ["Abalado","Em choque","Estatelado","Descompensado","Sobressalto","Colapso","Vértigo","Pânico súbito","Explodido","Inacreditável"],
+        ["Curioso", "Perplexo", "Chocado"],
+        ["Intrigado", "Atento", "Incerto", "Confuso", "Impressionado", "Questionador"],
+        ["Surpreso", "Espantado", "Atônito", "Sem palavras", "Estupefato", "Incrédulo", "Suspenso", "Desconfiado", "Desnorteado", "Paralisado"],
+        ["Aboquiaberto", "Estarrecido", "Assombrado", "Alarmado", "Perturbado", "Em choque", "Abalado", "Sobressalto", "Pânico súbito", "Colapso",
+        "Explodido", "Inacreditável", "Vértigo", "Impactado", "Descompensado", "Estatelado"]
       ],
     },
     {
       name: "Alegria",
-      baseColor: [60, 180, 75],
       rings: [
-        ["Sereno","Aliviado","Confortável","Tranquilo","Relaxado","Leve","Grato","Satisfeito","Bem","Ok"],
-        ["Feliz","Alegre","Animado","Divertido","Esperançoso","Otimista","Entusiasmado","Interessado","Motivado","Empolgado"],
-        ["Radiante","Encantado","Inspirado","Vibrante","Energizado","Maravilhado","Triunfante","Orgulhoso","Eufórico","Apaixonado"],
-        ["Êxtase","Júbilo","Exaltação","Arrebatado","Extasiado","Plenitude","Transbordando","Incrível","Glorioso","Pico"],
+        ["Sereno", "Feliz", "Entusiasmado"],
+        ["Aliviado", "Tranquilo", "Satisfeito", "Grato", "Alegre", "Otimista"],
+        ["Confortável", "Relaxado", "Leve", "Bem", "Animado", "Divertido", "Interessado", "Motivado", "Empolgado", "Energizado", "Vibrante"],
+        ["Radiante", "Encantado", "Inspirado", "Maravilhado", "Triunfante", "Orgulhoso", "Eufórico", "Apaixonado", "Arrebatado", "Extasiado",
+        "Êxtase", "Júbilo", "Exaltação", "Plenitude", "Transbordando", "Glorioso", "Pico"]
       ],
     },
     {
       name: "Amor",
-      baseColor: [230, 80, 150],
       rings: [
-        ["Carinho","Afeto","Ternura","Acolhido","Cuidado","Compaixão","Amizade","Respeito","Gentileza","Conexão"],
-        ["Amoroso","Apreciado","Valorizado","Confiante","Íntimo","Solidário","Protetor","Dedicado","Gratidão","Pertencimento"],
-        ["Apaixonado","Devoto","Admiração","Encantamento","Desejo","Comprometido","Saudade","Reverência","Fascínio","União"],
-        ["Adoração","Veneração","Entrega","Amor profundo","Fusão","Plenamente amado","Amor incondicional","Inteireza","Sagrado","Completude"],
+        ["Afetuoso", "Desejoso", "Conectado"],
+        ["Carinho", "Ternura", "Atração", "Admiração", "Saudade", "Pertencimento"],
+        ["Cuidado", "Gentileza", "Respeito", "Acolhido", "Comprometido", "Dedicado", "Confiança", "Intimidade", "Gratidão", "Solidário", "Compaixão"],
+        ["Fascínio", "Reverência", "Encantamento", "Entrega", "Adoração", "Veneração", "Amor profundo", "Amor incondicional", "Inteireza", "Sagrado",
+        "Plenamente amado", "União", "Fusão", "Proteção", "Devoto", "Romântico"]
       ],
     },
-  ]
-};
+  ]};

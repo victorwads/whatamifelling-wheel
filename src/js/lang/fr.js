@@ -17,67 +17,68 @@ export default {
     appTitle: "Roue des Émotions",
     appDescription: "Sélectionnez les émotions que vous ressentez en cliquant dessus. Exportez ou partagez pour enregistrer ce que vous ressentez.",
     exportDateLabel: "Date et heure",
-    btnShare: "🔗 Partager"
+    btnShare: "🔗 Partager",
+    pdfInteractiveLink: "Cliquez ici pour ouvrir ce rapport en mode interactif"
   },
   sectors: [
     {
       name: "Peur",
-      baseColor: [120, 0, 180],
       rings: [
-        ["Appréhensif","Insécure","Inquiet","Tendu","Craintif","Agité","Nerveux","Prudent","Vulnérable","Alerte"],
-        ["Anxieux","Effrayé","Menacé","Inconfortable","Sous pression","Alarmé","Perturbé","Non protégé","En danger","Hésitant"],
-        ["Terrorisé","Épouvanté","Horrifié","Paralysé","Paniqué","Désespéré","Phobique","En état de choc","Effroi","Incontrôlable"],
-        ["Terreur","Effroi extrême","Hystérie","Panique totale","Effondrement","Désespoir","Sans repère","Fuite","Anéantissement","Peur absolue"],
+        ["Anxieux", "Insécure", "Menacé"],
+        ["Appréhensif", "Inquiet", "Prudent", "Craintif", "Mal à l'aise", "Vulnérable"],
+        ["Tendu", "Nerveux", "Agité", "Alerte", "Hésitant", "Effrayé", "Alarmé", "Non protégé", "Inconfortable", "Sous pression"],
+        ["Terrorisé", "Horrifié", "Paralysé", "En état de choc", "Perturbé", "Paniqué", "Effroi", "Désespéré", "Phobique", "Démuni",
+        "Terreur", "Hystérie", "Panique totale", "Sans repère", "Fuite", "Effondrement", "Incontrôlable", "Peur absolue"]
       ],
     },
     {
       name: "Colère",
-      baseColor: [220, 40, 40],
       rings: [
-        ["Irrité","Gêné","Contrarié","Impatient","Fâché","Agité","Frustré","Rancunier","Sceptique","Méfiant"],
-        ["En colère","Furieux","Offensé","Hostile","Indigné","Outré","Provoqué","Rancunier","Jaloux","Agressif"],
-        ["Furieux","Enragé","Révolté","Colérique","Explosif","Amer","Haineux","Vengeur","Mépris","Intolérant"],
-        ["Furie","Haine","Hors de soi","Iracible","Violent","Implacable","Rageur","Incontrôlé","Possédé","Embrasé"],
+        ["Irrité", "Offensé", "Frustré"],
+        ["Gêné", "Contrarié", "Impatient", "Indigné", "Rancunier", "Provoqué"],
+        ["Fâché", "Agité", "Sceptique", "Méfiant", "En colère", "Furieux", "Outré", "Hostile", "Jaloux", "Agressif"],
+        ["Enragé", "Révolté", "Colérique", "Explosif", "Haineux", "Vengeur", "Mépris", "Intolérant", "Amer", "Rancœur",
+        "Furie", "Haine", "Hors de soi", "Furibond", "Implacable", "Possédé", "Rageur", "Hors de contrôle"]
       ],
     },
     {
       name: "Tristesse",
-      baseColor: [50, 100, 200],
       rings: [
-        ["Découragé","Abattu","Contrarié","Solitaire","Nostalgique","Fatigué","Vide","Mélancolique","Démotivé","En manque"],
-        ["Triste","Blessé","Déçu","Désillusion","Chagriné","Impuissant","Coupable","Regrettant","Honteux","Abandonné"],
-        ["Déprimé","Dévasté","Inconsolable","Humilié","Affligé","Désespéré","En deuil","Tourmenté","Angoissé","Opprimé"],
-        ["Désespoir","Désolé","Anéanti","Sans sens","Douleur profonde","Abîme","Écroulé","Annihilé","Englouti","Défait"],
+        ["Découragé", "Solitaire", "Blessé"],
+        ["Fatigué", "Vide", "Nostalgique", "En manque", "Déçu", "Impuissant"],
+        ["Abattu", "Mélancolique", "Démotivé", "Triste", "Désabusé", "Chagriné", "Sans force", "Coupable", "Regrettant", "Honteux"],
+        ["Angoissé", "Affligé", "En deuil", "Opprimé", "Inconsolable", "Dévasté", "Désespéré", "Douleur profonde", "Sans sens", "Désolé",
+        "Brisé", "Désespoir", "Abîme", "Écroulé", "Anéanti", "Défait"]
       ],
     },
     {
       name: "Surprise",
-      baseColor: [255, 180, 0],
       rings: [
-        ["Curieux","Intrigué","Attentif","Méfiant","Distrait","Incertain","En suspens","Interrogatif","Inattendu","Éveillé"],
-        ["Surpris","Étonné","Perplexe","Confus","Impressionné","Sans voix","Touché","Stupéfait","Choqué","Médusé"],
-        ["Ébahi","Bouche bée","Alarmé","Abasourdi","Terrorisé","Désorienté","Incrédule","Paralysé","Stupeur","Perturbé"],
-        ["Ébranlé","En état de choc","Assommé","Décompensé","Sursaut","Effondrement","Vertige","Panique soudaine","Explosé","Incroyable"],
+        ["Curieux", "Perplexe", "Choqué"],
+        ["Intrigué", "Attentif", "Incertain", "Confus", "Impressionné", "Interrogatif"],
+        ["Surpris", "Étonné", "Abasourdi", "Sans voix", "Stupéfait", "Incrédule", "En suspens", "Méfiant", "Désorienté", "Paralysé"],
+        ["Bouche bée", "Ébahi", "Médusé", "Alarmé", "Perturbé", "En état de choc", "Ébranlé", "Sursaut", "Panique soudaine", "Effondrement",
+        "Explosé", "Incroyable", "Vertige", "Submergé", "Décompensé", "Étourdi"]
       ],
     },
     {
       name: "Joie",
-      baseColor: [60, 180, 75],
       rings: [
-        ["Serein","Soulagé","Confortable","Tranquille","Détendu","Léger","Reconnaissant","Satisfait","Bien","Ok"],
-        ["Heureux","Joyeux","Animé","Amusé","Plein d'espoir","Optimiste","Enthousiaste","Intéressé","Motivé","Emballé"],
-        ["Radieux","Enchanté","Inspiré","Vibrant","Énergisé","Émerveillé","Triomphant","Fier","Euphorique","Passionné"],
-        ["Extase","Jubilation","Exaltation","Ravi","Extatique","Plénitude","Débordant","Incroyable","Glorieux","Sommet"],
+        ["Serein", "Heureux", "Enthousiaste"],
+        ["Soulagé", "Tranquille", "Satisfait", "Reconnaissant", "Joyeux", "Optimiste"],
+        ["Confortable", "Détendu", "Léger", "Bien", "Animé", "Amusé", "Intéressé", "Motivé", "Excité", "Énergisé", "Vibrant"],
+        ["Radieux", "Enchanté", "Inspiré", "Émerveillé", "Triomphant", "Fier", "Euphorique", "Passionné", "Ravi", "Extatique",
+        "Extase", "Jubilation", "Exaltation", "Plénitude", "Débordant", "Glorieux", "Sommet"]
       ],
     },
     {
       name: "Amour",
-      baseColor: [230, 80, 150],
       rings: [
-        ["Tendresse","Affection","Douceur","Accueilli","Soigné","Compassion","Amitié","Respect","Gentillesse","Connexion"],
-        ["Aimant","Apprécié","Valorisé","Confiant","Intime","Solidaire","Protecteur","Dévoué","Gratitude","Appartenance"],
-        ["Passionné","Dévoué","Admiration","Enchantement","Désir","Engagé","Nostalgie","Révérence","Fascination","Union"],
-        ["Adoration","Vénération","Abandon","Amour profond","Fusion","Pleinement aimé","Amour inconditionnel","Plénitude","Sacré","Complétude"],
+        ["Affectueux", "Nostalgique", "Connecté"],
+        ["Tendresse", "Douceur", "Attirance", "Admiration", "Nostalgie", "Appartenance"],
+        ["Gentillesse", "Bienveillance", "Respect", "Accueilli", "Engagé", "Dévoué", "Confiance", "Intimité", "Gratitude", "Solidaire", "Compassion"],
+        ["Fascination", "Révérence", "Enchantement", "Abandon", "Adoration", "Vénération", "Amour profond", "Amour inconditionnel", "Plénitude", "Sacré",
+        "Pleinement aimé", "Union", "Fusion", "Protection", "Dévoué", "Romantique"]
       ],
     },
   ]

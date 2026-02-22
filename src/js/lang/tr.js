@@ -17,7 +17,8 @@ export default {
     appTitle: "Duygu Çarkı",
     appDescription: "Hissettiklerinizi üzerlerine tıklayarak seçin. Nasıl hissettiğinizi kaydetmek için dışa aktarın veya paylaşın.",
     exportDateLabel: "Tarih ve saat",
-    btnShare: "🔗 Paylaş"
+    btnShare: "🔗 Paylaş",
+    pdfInteractiveLink: "Etkileşimli modda raporu açmak için buraya tıklayın"
   },
   sectors: [
     {

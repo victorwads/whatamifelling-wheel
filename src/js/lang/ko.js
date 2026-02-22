@@ -17,7 +17,8 @@ export default {
     appTitle: "감정의 바퀴",
     appDescription: "느끼고 있는 감정을 클릭하여 선택하세요. 내보내기 또는 공유하여 기분을 기록하세요.",
     exportDateLabel: "날짜 및 시간",
-    btnShare: "🔗 공유"
+    btnShare: "🔗 공유",
+    pdfInteractiveLink: "여기를 클릭하여 인터랙티브 모드로 보고서 열기"
   },
   sectors: [
     {

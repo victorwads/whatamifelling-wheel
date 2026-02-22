@@ -17,67 +17,68 @@ export default {
     appTitle: "Emotion Wheel",
     appDescription: "Select the emotions you are feeling by clicking on them. Export or share to record how you feel.",
     exportDateLabel: "Date and time",
-    btnShare: "🔗 Share"
+    btnShare: "🔗 Share",
+    pdfInteractiveLink: "Click here to open this report in interactive mode"
   },
   sectors: [
     {
       name: "Fear",
-      baseColor: [120, 0, 180],
       rings: [
-        ["Apprehensive","Insecure","Worried","Tense","Fearful","Restless","Nervous","Cautious","Vulnerable","Alert"],
-        ["Anxious","Scared","Threatened","Uncomfortable","Pressured","Alarmed","Disturbed","Unprotected","At risk","Hesitant"],
-        ["Terrified","Petrified","Horrified","Paralyzed","Panicked","Desperate","Phobic","In shock","Dread","Out of control"],
-        ["Terror","Extreme dread","Hysteria","Total panic","Collapse","Despair","Groundless","Flight","Annihilation","Absolute fear"],
+        ["Anxious", "Insecure", "Threatened"],
+        ["Apprehensive", "Worried", "Cautious", "Fearful", "Uneasy", "Vulnerable"],
+        ["Tense", "Nervous", "Restless", "Alert", "Hesitant", "Scared", "Alarmed", "Unprotected", "Uncomfortable", "Pressured"],
+        ["Terrified", "Horrified", "Paralyzed", "In shock", "Disturbed", "Panicked", "Dread", "Desperate", "Phobic", "Helpless",
+        "Terror", "Hysteria", "Total panic", "Groundless", "Fleeing", "Collapse", "Uncontrolled", "Absolute fear"]
       ],
     },
     {
       name: "Anger",
-      baseColor: [220, 40, 40],
       rings: [
-        ["Irritated","Annoyed","Upset","Impatient","Bothered","Agitated","Frustrated","Resentful","Skeptical","Suspicious"],
-        ["Angry","Mad","Offended","Hostile","Indignant","Outraged","Provoked","Rancorous","Jealous","Aggressive"],
-        ["Furious","Enraged","Revolted","Choleric","Explosive","Bitter","Hateful","Vengeful","Contempt","Intolerant"],
-        ["Fury","Hatred","Beside oneself","Irate","Violent","Implacable","Wrathful","Uncontrolled","Possessed","Ignited"],
+        ["Irritated", "Offended", "Frustrated"],
+        ["Bothered", "Contrary", "Impatient", "Indignant", "Resentful", "Provoked"],
+        ["Upset", "Agitated", "Skeptical", "Distrustful", "Mad", "Angry", "Outraged", "Hostile", "Jealous", "Aggressive"],
+        ["Enraged", "Revolted", "Choleric", "Explosive", "Hateful", "Vengeful", "Contemptuous", "Intolerant", "Bitter", "Rancorous",
+        "Fury", "Hatred", "Beside oneself", "Irate", "Implacable", "Possessed", "Wrathful", "Uncontrolled"]
       ],
     },
     {
       name: "Sadness",
-      baseColor: [50, 100, 200],
       rings: [
-        ["Discouraged","Dejected","Upset","Lonely","Nostalgic","Tired","Empty","Melancholy","Demotivated","Needy"],
-        ["Sad","Hurt","Disappointed","Disillusioned","Sorrowful","Helpless","Guilty","Regretful","Ashamed","Abandoned"],
-        ["Depressed","Devastated","Inconsolable","Humiliated","Mournful","Hopeless","Grieving","Afflicted","Anguished","Oppressed"],
-        ["Despair","Desolate","Shattered","Meaningless","Deep pain","Abyss","Crumbled","Annihilated","Consumed","Undone"],
+        ["Discouraged", "Lonely", "Hurt"],
+        ["Tired", "Empty", "Nostalgic", "Needy", "Disappointed", "Helpless"],
+        ["Dejected", "Melancholic", "Unmotivated", "Sad", "Disillusioned", "Sorrowful", "Powerless", "Guilty", "Regretful", "Ashamed"],
+        ["Anguished", "Afflicted", "Grieving", "Oppressed", "Inconsolable", "Devastated", "Hopeless", "Deep pain", "Meaningless", "Desolate",
+        "Shattered", "Despair", "Abyss", "Crumbled", "Annihilated", "Undone"]
       ],
     },
     {
       name: "Surprise",
-      baseColor: [255, 180, 0],
       rings: [
-        ["Curious","Intrigued","Attentive","Suspicious","Distracted","Uncertain","Suspended","Questioning","Unexpected","Awake"],
-        ["Surprised","Amazed","Perplexed","Confused","Impressed","Speechless","Touched","Stupefied","Shocked","Astonished"],
-        ["Astounded","Jaw-dropped","Alarmed","Aghast","Terrified","Bewildered","Incredulous","Paralyzed","Amazement","Disturbed"],
-        ["Shaken","In shock","Stunned","Overwhelmed","Startled","Collapsed","Vertigo","Sudden panic","Exploded","Unbelievable"],
+        ["Curious", "Perplexed", "Shocked"],
+        ["Intrigued", "Attentive", "Uncertain", "Confused", "Impressed", "Questioning"],
+        ["Surprised", "Astonished", "Stunned", "Speechless", "Stupefied", "Incredulous", "Suspended", "Suspicious", "Disoriented", "Paralyzed"],
+        ["Jaw-dropped", "Aghast", "Astounded", "Alarmed", "Disturbed", "In shock", "Shaken", "Startled", "Sudden panic", "Collapsed",
+        "Exploded", "Unbelievable", "Vertigo", "Overwhelmed", "Off-balance", "Dumbfounded"]
       ],
     },
     {
       name: "Joy",
-      baseColor: [60, 180, 75],
       rings: [
-        ["Serene","Relieved","Comfortable","Tranquil","Relaxed","Light","Grateful","Satisfied","Well","Ok"],
-        ["Happy","Joyful","Excited","Amused","Hopeful","Optimistic","Enthusiastic","Interested","Motivated","Thrilled"],
-        ["Radiant","Enchanted","Inspired","Vibrant","Energized","Marveled","Triumphant","Proud","Euphoric","Passionate"],
-        ["Ecstasy","Jubilation","Exaltation","Rapturous","Ecstatic","Fullness","Overflowing","Incredible","Glorious","Peak"],
+        ["Serene", "Happy", "Enthusiastic"],
+        ["Relieved", "Calm", "Content", "Grateful", "Cheerful", "Optimistic"],
+        ["Comfortable", "Relaxed", "Light", "Well", "Animated", "Amused", "Interested", "Motivated", "Excited", "Energized", "Vibrant"],
+        ["Radiant", "Enchanted", "Inspired", "Marveled", "Triumphant", "Proud", "Euphoric", "Passionate", "Rapturous", "Ecstatic",
+        "Ecstasy", "Jubilation", "Exaltation", "Fullness", "Overflowing", "Glorious", "Peak"]
       ],
     },
     {
       name: "Love",
-      baseColor: [230, 80, 150],
       rings: [
-        ["Affection","Fondness","Tenderness","Welcomed","Cared for","Compassion","Friendship","Respect","Kindness","Connection"],
-        ["Loving","Appreciated","Valued","Confident","Intimate","Supportive","Protective","Dedicated","Gratitude","Belonging"],
-        ["Passionate","Devoted","Admiration","Enchantment","Desire","Committed","Longing","Reverence","Fascination","Union"],
-        ["Adoration","Veneration","Surrender","Deep love","Fusion","Fully loved","Unconditional","Wholeness","Sacred","Completeness"],
+        ["Affectionate", "Longing", "Connected"],
+        ["Caring", "Tenderness", "Attraction", "Admiration", "Nostalgia", "Belonging"],
+        ["Gentle", "Kind", "Respectful", "Welcomed", "Committed", "Dedicated", "Trusting", "Intimate", "Grateful", "Supportive", "Compassionate"],
+        ["Fascination", "Reverence", "Enchantment", "Surrender", "Adoration", "Veneration", "Deep love", "Unconditional love", "Wholeness", "Sacred",
+        "Fully loved", "Union", "Fusion", "Protection", "Devoted", "Romantic"]
       ],
     },
   ]
