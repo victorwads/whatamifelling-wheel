@@ -24,6 +24,9 @@
   --toast-bg: #333;
   --toast-text: #fff;
   --lang-bg: rgba(255,255,255,0.92);
+  
+  /* Button scale (base multiplier for proportional sizing) */
+  --btn-scale: 0.85;
 }
 
 /* ---- Dark theme overrides ---- */
@@ -82,67 +85,151 @@ html, body {
   display: block;
 }
 
-/* ---- Floating Top Bar ---- */
+/* ---- Floating Controls ---- */
 
-#floating-top {
+#floating-left {
   position: absolute;
   top: 10px;
   left: 10px;
-  right: 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: calc(6px * var(--btn-scale));
   z-index: 20;
   pointer-events: none;
 }
 
-#floating-top > * {
+#floating-left > * {
+  pointer-events: auto;
+}
+
+#floating-right {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--btn-scale));
+  z-index: 20;
+  pointer-events: none;
+}
+
+#floating-right > * {
   pointer-events: auto;
 }
 
 .floating-lang {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6px * var(--btn-scale));
   background: var(--lang-bg);
-  border-radius: 8px;
-  padding: 4px 10px;
+  border-radius: calc(8px * var(--btn-scale));
+  padding: calc(4px * var(--btn-scale)) calc(10px * var(--btn-scale));
   box-shadow: 0 1px 4px rgba(0,0,0,0.12);
   border: 1px solid var(--border);
   color: var(--text);
 }
 
 .floating-lang label {
-  font-size: 1rem;
+  font-size: calc(1rem * var(--btn-scale));
 }
 
 .floating-lang select {
   border: none;
   background: transparent;
-  font-size: 0.85rem;
-  padding: 4px 2px;
+  font-size: calc(0.85rem * var(--btn-scale));
+  padding: calc(4px * var(--btn-scale)) calc(2px * var(--btn-scale));
   outline: none;
   cursor: pointer;
   color: var(--text);
 }
 
-.floating-actions {
+.search-btn {
+  position: relative;
+  overflow: hidden;
+  transition: width 0.3s ease, background 0.15s, color 0.15s;
+}
+
+.search-btn .search-icon {
+  transition: opacity 0.3s ease;
+  flex-shrink: 0;
+}
+
+.search-btn.expanded .search-icon {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.search-btn.expanded {
+  width: calc(320px * var(--btn-scale));
+}
+
+.search-btn .search-input {
+  position: absolute;
+  left: calc(10px * var(--btn-scale));
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  font-size: calc(0.85rem * var(--btn-scale));
+  outline: none;
+  color: var(--text);
+  width: 0;
+  opacity: 0;
+  transition: width 0.3s ease, opacity 0.3s ease;
+  padding: 0;
+}
+
+.search-btn.expanded .search-input {
+  width: calc(100% - 45px * var(--btn-scale));
+  opacity: 1;
+  padding: 0 calc(5px * var(--btn-scale));
+}
+
+.search-btn .search-input::placeholder {
+  color: var(--text);
+  opacity: 0.5;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: calc(8px * var(--btn-scale));
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  opacity: 0;
+  font-size: calc(1rem * var(--btn-scale));
+  padding: calc(4px * var(--btn-scale));
   display: flex;
-  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.search-btn.expanded .search-clear-btn {
+  opacity: 0.6;
+  pointer-events: auto;
+}
+
+.search-clear-btn:hover {
+  opacity: 1 !important;
 }
 
 .floating-btn {
-  width: 40px;
-  height: 40px;
+  width: calc(40px * var(--btn-scale));
+  height: calc(40px * var(--btn-scale));
   border: 1px solid var(--btn-border);
-  border-radius: 8px;
+  border-radius: calc(8px * var(--btn-scale));
   background: var(--btn-bg);
-  font-size: 1.1rem;
+  font-size: calc(1.1rem * var(--btn-scale));
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: calc(8px * var(--btn-scale));
   box-shadow: 0 1px 4px rgba(0,0,0,0.12);
   color: var(--btn-text);
   line-height: 1;
@@ -152,11 +239,11 @@ html, body {
 
 .floating-btn-with-label {
   width: auto;
-  padding: 0 12px;
+  padding: 0 calc(12px * var(--btn-scale));
 }
 
 .floating-btn .btn-label {
-  font-size: 0.9rem;
+  font-size: calc(0.9rem * var(--btn-scale));
   font-weight: 500;
 }
 
@@ -172,12 +259,12 @@ html, body {
 
 #export-menu {
   position: absolute;
-  top: 58px;
+  top: calc(58px * var(--btn-scale));
   right: 10px;
   z-index: 25;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: calc(8px * var(--btn-scale));
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   display: flex;
   flex-direction: column;
@@ -190,10 +277,10 @@ html, body {
 }
 
 #export-menu button {
-  padding: 10px 18px;
+  padding: calc(10px * var(--btn-scale)) calc(18px * var(--btn-scale));
   border: none;
   background: transparent;
-  font-size: 0.9rem;
+  font-size: calc(0.9rem * var(--btn-scale));
   text-align: left;
   cursor: pointer;
   white-space: nowrap;
@@ -428,35 +515,50 @@ html, body {
     overflow: hidden;
   }
 
-  /* Floating top adjustments */
-  #floating-top {
+  /* Floating controls adjustments */
+  #floating-left {
     top: 8px;
     left: 8px;
+    gap: calc(6px * var(--btn-scale));
+  }
+
+  #floating-right {
+    top: 8px;
     right: 8px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: calc(6px * var(--btn-scale));
   }
 
   .floating-lang select {
-    font-size: 0.8rem;
-    max-width: 110px;
+    font-size: calc(0.8rem * var(--btn-scale));
+    max-width: calc(110px * var(--btn-scale));
   }
 
   .floating-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
+    width: calc(36px * var(--btn-scale));
+    height: calc(36px * var(--btn-scale));
+    font-size: calc(1rem * var(--btn-scale));
   }
 
   .floating-btn-with-label {
     width: auto;
-    padding: 0 10px;
+    padding: 0 calc(10px * var(--btn-scale));
+    justify-content: flex-start;
   }
 
   .floating-btn .btn-label {
-    font-size: 0.85rem;
+    font-size: calc(0.85rem * var(--btn-scale));
+  }
+
+  .search-btn.expanded {
+    width: 100%;
+    max-width: calc(380px * var(--btn-scale));
   }
 
   #export-menu {
-    top: 52px;
+    top: auto;
+    bottom: 8px;
     right: 8px;
   }
 

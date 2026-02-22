@@ -171,7 +171,7 @@ let pinchPrevCx = 0;
 let pinchPrevCy = 0;
 
 container.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#zoom-controls") || e.target.closest("#floating-top") || e.target.closest("#export-menu")) return;
+  if (e.target.closest("#zoom-controls") || e.target.closest("#floating-left") || e.target.closest("#floating-right") || e.target.closest("#export-menu")) return;
   e.preventDefault();
   container.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -367,7 +367,14 @@ langSelect.addEventListener("change", (e) => {
   setLanguageProperty(currentLang);
   
   wheel.setSectors(langData.sectors);
-  wheel.draw();
+  
+  // Re-run search if there's an active search term
+  const searchInput = document.getElementById("search-input");
+  if (searchInput && searchInput.value) {
+    searchEmotions(searchInput.value);
+  } else {
+    wheel.draw();
+  }
   
   updateLocalization();
   updateSidebar();
@@ -388,6 +395,8 @@ function updateLocalization() {
   document.getElementById("btn-copy-link").innerHTML = '<i class="fa-solid fa-link"></i> ' + ui.btnCopyLink;
   document.getElementById("btn-clear").title = ui.btnClear;
   document.getElementById("btn-export").title = ui.btnShare;
+  document.getElementById("btn-search").title = ui.btnSearch;
+  document.getElementById("search-input").placeholder = ui.searchPlaceholder;
   document.getElementById("btn-clear-label").textContent = ui.btnClearAll;
   document.getElementById("btn-export-label").textContent = ui.btnShareFeelings;
   document.title = ui.appTitle;
@@ -607,11 +616,132 @@ sidebarHandle.addEventListener("click", () => {
 
 // On mobile, collapse sidebar when tapping the canvas area
 container.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#zoom-controls") || e.target.closest("#floating-top") || e.target.closest("#export-menu")) return;
+  if (e.target.closest("#zoom-controls") || e.target.closest("#floating-left") || e.target.closest("#floating-right") || e.target.closest("#export-menu")) return;
   // Only on mobile: the sidebar handle is visible only on mobile
   if (window.innerWidth <= 700 && !sidebar.classList.contains("collapsed")) {
     // Don't auto-collapse — let user do it via handle
   }
+});
+
+// ---------------------------------------------------------------------------
+// SEARCH FUNCTIONALITY
+// ---------------------------------------------------------------------------
+
+const btnSearch = document.getElementById("btn-search");
+const searchInput = document.getElementById("search-input");
+const btnSearchClear = document.getElementById("btn-search-clear");
+
+// Toggle search box
+btnSearch.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isExpanded = btnSearch.classList.contains("expanded");
+  if (!isExpanded) {
+    btnSearch.classList.add("expanded");
+    setTimeout(() => searchInput.focus(), 300);
+  }
+});
+
+// Close search box when clicking elsewhere
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("#btn-search")) {
+    if (!searchInput.value) {
+      btnSearch.classList.remove("expanded");
+      wheel.searchHighlights.clear();
+      wheel.draw();
+    }
+  }
+});
+
+// Prevent clicks inside search from closing it
+searchInput.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+btnSearchClear.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+// Clear search
+btnSearchClear.addEventListener("click", () => {
+  searchInput.value = "";
+  wheel.searchHighlights.clear();
+  wheel.draw();
+  searchInput.focus();
+});
+
+// Fuzzy match function - calculates similarity between two strings
+function fuzzyMatch(str, query) {
+  str = str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  query = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  
+  // Exact match
+  if (str.includes(query)) return 1.0;
+  
+  // Calculate Levenshtein distance based similarity
+  let matches = 0;
+  let qIdx = 0;
+  
+  for (let i = 0; i < str.length && qIdx < query.length; i++) {
+    if (str[i] === query[qIdx]) {
+      matches++;
+      qIdx++;
+    }
+  }
+  
+  if (matches === 0) return 0;
+  
+  // Similarity score based on matched chars
+  return matches / Math.max(str.length, query.length);
+}
+
+// Search emotions
+function searchEmotions(query) {
+  wheel.searchHighlights.clear();
+  
+  if (!query || query.trim().length < 2) {
+    wheel.draw();
+    return;
+  }
+  
+  query = query.trim();
+  const threshold = 0.4; // Minimum similarity threshold
+  
+  for (let s = 0; s < langData.sectors.length; s++) {
+    const sector = langData.sectors[s];
+    
+    // Check sector name
+    if (fuzzyMatch(sector.name, query) >= threshold) {
+      // Highlight all words in this sector
+      for (let ri = 0; ri < sector.rings.length; ri++) {
+        for (let wi = 0; wi < sector.rings[ri].length; wi++) {
+          wheel.searchHighlights.add(`${s}-${ri}-${wi}`);
+        }
+      }
+      continue;
+    }
+    
+    // Check individual words
+    for (let ri = 0; ri < sector.rings.length; ri++) {
+      const words = sector.rings[ri];
+      for (let wi = 0; wi < words.length; wi++) {
+        const word = words[wi];
+        if (fuzzyMatch(word, query) >= threshold) {
+          wheel.searchHighlights.add(`${s}-${ri}-${wi}`);
+        }
+      }
+    }
+  }
+  
+  wheel.draw();
+}
+
+// Search input listener
+let searchTimeout;
+searchInput.addEventListener("input", (e) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    searchEmotions(e.target.value);
+  }, 300);
 });
 
 // ---------------------------------------------------------------------------

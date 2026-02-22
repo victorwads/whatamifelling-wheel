@@ -7,6 +7,8 @@ export default {
     btnClear: "清除",
     btnClearAll: "全部清除",
     btnShareFeelings: "分享感受",
+    btnSearch: "搜索情绪",
+    searchPlaceholder: "搜索情绪...",
     btnCopy: "复制",
     btnCopyText: "复制文本",
     btnCopyLink: "复制链接",

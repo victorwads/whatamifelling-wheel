@@ -12,6 +12,7 @@ export class EmotionWheel {
     // Carrega seleção do Session Storage
     const saved = sessionStorage.getItem('emotion-wheel-selected');
     this.selected = saved ? new Set(JSON.parse(saved)) : new Set();
+    this.searchHighlights = new Set(); // Words highlighted by search
 
     // Geometry state (world coordinates)
     this.cx = 0;
@@ -105,7 +106,7 @@ export class EmotionWheel {
       }
     }
 
-    // 2. Draw highlights
+    // 2. Draw selection highlights (black border with shadow) - draw first
     for (const key of this.selected) {
       const [s, ri, wi] = key.split("-").map(Number);
       const sector = this.sectors[s];
@@ -127,7 +128,34 @@ export class EmotionWheel {
       this.ctx.restore();
     }
 
-    // 3. Draw text
+    // 3. Draw search highlights (yellow border) - draw on top so both are visible
+    for (const key of this.searchHighlights) {
+      const [s, ri, wi] = key.split("-").map(Number);
+      const sector = this.sectors[s];
+      if (!sector) continue;
+      const sectorStart = s * this.sectorAngle;
+      const m = sector.rings[ri].length;
+      const rIn = this.innerR + ri * this.ringWidth + CONFIG.RING_GAP;
+      const rOut = this.innerR + (ri + 1) * this.ringWidth;
+      const aStart = sectorStart + (wi / m) * this.sectorAngle;
+      const aEnd = sectorStart + ((wi + 1) / m) * this.sectorAngle;
+      const path = this.getSlicePath(aStart, aEnd, rIn, rOut);
+
+      this.ctx.save();
+      // If also selected, draw yellow border slightly inside to show both
+      if (this.selected.has(key)) {
+        this.ctx.strokeStyle = "#FFD700";
+        this.ctx.lineWidth = 4;
+        this.ctx.setLineDash([8, 4]);
+      } else {
+        this.ctx.strokeStyle = "#FFD700";
+        this.ctx.lineWidth = 4;
+      }
+      this.ctx.stroke(path);
+      this.ctx.restore();
+    }
+
+    // 4. Draw text
     for (let s = 0; s < this.sectors.length; s++) {
       const sector = this.sectors[s];
       const sectorStart = s * this.sectorAngle;

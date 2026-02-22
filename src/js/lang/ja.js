@@ -7,6 +7,8 @@ export default {
     btnClear: "クリア",
     btnClearAll: "すべてクリア",
     btnShareFeelings: "感情を共有",
+    btnSearch: "感情を検索",
+    searchPlaceholder: "感情を検索...",
     btnCopy: "コピー",
     btnCopyText: "テキストをコピー",
     btnCopyLink: "リンクをコピー",

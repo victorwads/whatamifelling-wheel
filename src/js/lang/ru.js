@@ -7,6 +7,8 @@ export default {
     btnClear: "Очистить",
     btnClearAll: "Очистить всё",
     btnShareFeelings: "Поделиться чувствами",
+    btnSearch: "Поиск эмоций",
+    searchPlaceholder: "Поиск эмоции...",
     btnCopy: "Копировать",
     btnCopyText: "Копировать текст",
     btnCopyLink: "Копировать ссылку",

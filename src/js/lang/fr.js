@@ -7,6 +7,8 @@ export default {
     btnClear: "Effacer",
     btnClearAll: "Tout Effacer",
     btnShareFeelings: "Partager Sentiments",
+    btnSearch: "Rechercher émotions",
+    searchPlaceholder: "Rechercher émotion...",
     btnCopy: "Copier",
     btnCopyText: "Copier le texte",
     btnCopyLink: "Copier le lien",

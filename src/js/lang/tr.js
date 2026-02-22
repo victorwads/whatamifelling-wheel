@@ -7,6 +7,8 @@ export default {
     btnClear: "Temizle",
     btnClearAll: "Tümünü Temizle",
     btnShareFeelings: "Duyguları Paylaş",
+    btnSearch: "Duyguları ara",
+    searchPlaceholder: "Duygu ara...",
     btnCopy: "Kopyala",
     btnCopyText: "Metni kopyala",
     btnCopyLink: "Bağlantıyı kopyala",

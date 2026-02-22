@@ -7,6 +7,8 @@ export default {
     btnClear: "Clear",
     btnClearAll: "Clear All",
     btnShareFeelings: "Share Feelings",
+    btnSearch: "Search emotions",
+    searchPlaceholder: "Search emotion...",
     btnCopy: "Copy",
     btnCopyText: "Copy text",
     btnCopyLink: "Copy link",

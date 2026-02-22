@@ -7,6 +7,8 @@ export default {
     btnClear: "मिटाएँ",
     btnClearAll: "सभी मिटाएँ",
     btnShareFeelings: "भावनाएँ साझा करें",
+    btnSearch: "भावनाएँ खोजें",
+    searchPlaceholder: "भावना खोजें...",
     btnCopy: "कॉपी",
     btnCopyText: "टेक्स्ट कॉपी करें",
     btnCopyLink: "लिंक कॉपी करें",

@@ -7,6 +7,8 @@ export default {
     btnClear: "مسح",
     btnClearAll: "مسح الكل",
     btnShareFeelings: "مشاركة المشاعر",
+    btnSearch: "البحث عن المشاعر",
+    searchPlaceholder: "بحث عن مشاعر...",
     btnCopy: "نسخ",
     btnCopyText: "نسخ النص",
     btnCopyLink: "نسخ الرابط",

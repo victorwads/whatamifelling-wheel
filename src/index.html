@@ -15,8 +15,9 @@
     <div id="canvas-container">
       <canvas id="wheel"></canvas>
 
-      <!-- Floating top bar: language + clear + export -->
-      <div id="floating-top">
+      <!-- Floating controls -->
+      <div id="floating-left">
+        <button id="btn-theme" class="floating-btn" title="Alternar tema"><i class="fa-solid fa-sun"></i></button>
         <div class="floating-lang">
           <label for="lang-select"><i class="fa-solid fa-globe"></i></label>
           <select id="lang-select">
@@ -35,10 +36,15 @@
             <option value="tr">Türkçe</option>
           </select>
         </div>
-        <div class="floating-actions">
-          <button id="btn-theme" class="floating-btn" title="Alternar tema"><i class="fa-solid fa-sun"></i></button>
-          <button id="btn-clear" class="floating-btn floating-btn-with-label" title="Limpar"><i class="fa-solid fa-eraser"></i><span id="btn-clear-label" class="btn-label">Limpar Tudo</span></button>
-          <button id="btn-export" class="floating-btn floating-btn-with-label" title="Compartilhar"><i class="fa-solid fa-share-nodes"></i><span id="btn-export-label" class="btn-label">Compartilhar Sentimentos</span></button>
+      </div>
+
+      <div id="floating-right">
+        <button id="btn-export" class="floating-btn floating-btn-with-label" title="Compartilhar"><i class="fa-solid fa-share-nodes"></i><span id="btn-export-label" class="btn-label">Compartilhar Sentimentos</span></button>
+        <button id="btn-clear" class="floating-btn floating-btn-with-label" title="Limpar"><i class="fa-solid fa-eraser"></i><span id="btn-clear-label" class="btn-label">Limpar Tudo</span></button>
+        <div id="btn-search" class="floating-btn search-btn" title="Pesquisar emoções">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="search-input" class="search-input" placeholder="Pesquisar emoção..." />
+          <button id="btn-search-clear" class="search-clear-btn" title="Limpar pesquisa"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>
 
