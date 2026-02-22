@@ -31,7 +31,6 @@ export class EmotionWheel {
   setSectors(sectors) {
     this.sectors = sectors;
     this.sectorAngle = (2 * Math.PI) / this.sectors.length;
-    this.selected.clear();
   }
 
   resize(containerW, containerH) {
@@ -43,13 +42,17 @@ export class EmotionWheel {
     this.canvas.style.width = containerW + "px";
     this.canvas.style.height = containerH + "px";
 
-    // World size: the wheel occupies a square of this size
-    this.worldSize = Math.min(containerW, containerH);
-    this.cx = this.worldSize / 2;
-    this.cy = this.worldSize / 2;
-    this.outerR = (this.worldSize / 2) * 0.95;
-    this.innerR = this.outerR * CONFIG.CENTER_RATIO;
-    this.ringWidth = (this.outerR - this.innerR) / CONFIG.NUM_RINGS;
+    // Fixed world size so the wheel looks identical on any screen.
+    // Zoom/pan handles fitting it to the viewport.
+    if (!this._worldInited) {
+      this.worldSize = 800;
+      this.cx = this.worldSize / 2;
+      this.cy = this.worldSize / 2;
+      this.outerR = (this.worldSize / 2) * 0.95;
+      this.innerR = this.outerR * CONFIG.CENTER_RATIO;
+      this.ringWidth = (this.outerR - this.innerR) / CONFIG.NUM_RINGS;
+      this._worldInited = true;
+    }
   }
 
   setViewport(scale, tx, ty) {
@@ -186,17 +189,10 @@ export class EmotionWheel {
     const normAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     const flip = normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2;
 
-    const arcLen = arcSpan * rMid;
-    let fontSize = Math.min(arcLen * 0.80, 13);
-    this.ctx.font = `${fontSize}px sans-serif`;
-    let measured = this.ctx.measureText(text).width;
-    while (measured > ringH * 0.88 && fontSize > 4) {
-      fontSize -= 0.5;
-      this.ctx.font = `${fontSize}px sans-serif`;
-      measured = this.ctx.measureText(text).width;
-    }
-
-    this.ctx.font = `${fontSize}px sans-serif`;
+    // Fixed font size based on world geometry, NOT per-word arc length.
+    // This ensures all words render at the same size on any screen/zoom.
+    const fontSize = Math.max(5, Math.min(this.ringWidth * 0.28, 13));
+    this.ctx.font = `${fontSize * 0.55}px sans-serif`;
     this.ctx.textAlign = "center";
     this.ctx.textBaseline = "middle";
     this.ctx.fillStyle = ColorHelper.getLabelColor(baseColor, ringIdx);

@@ -66,8 +66,13 @@ function centerView() {
 }
 
 function resetView() {
-  vpScale = 1;
-  centerView();
+  const cw = container.clientWidth;
+  const ch = container.clientHeight;
+  const ws = wheel.worldSize;
+  // Fit the wheel to the screen
+  vpScale = Math.min(cw, ch) / ws;
+  vpTx = (cw - ws * vpScale) / 2;
+  vpTy = (ch - ws * vpScale) / 2;
   updateView();
 }
 
@@ -355,7 +360,19 @@ document.getElementById("btn-copy").addEventListener("click", async () => {
   logEvent(analytics, 'share', { method: 'copy', content_type: 'text' });
 
   try {
-    await navigator.clipboard.writeText(text);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      // Fallback for non-secure contexts (HTTP)
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
     showToast(langData.ui.toastCopied);
   } catch (err) {
     console.error("Failed to copy!", err);

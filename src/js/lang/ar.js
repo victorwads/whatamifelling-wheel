@@ -4,10 +4,10 @@ export default {
   ui: {
     sidebarTitle: "المشاعر المُختارة",
     emptySelection: "لم يتم اختيار مشاعر",
-    btnClear: "🗑 مسح",
-    btnCopy: "📋 نسخ",
-    btnExportPng: "⬇ تصدير PNG",
-    btnExportPdf: "📄 تصدير PDF",
+    btnClear: "مسح",
+    btnCopy: "نسخ",
+    btnExportPng: "تصدير PNG",
+    btnExportPdf: "تصدير PDF",
     toastCopied: "تم نسخ القائمة!",
     pdfTitle: "عجلة المشاعر – PDF",
     pdfListTitle: "المشاعر المُختارة",
