@@ -455,10 +455,14 @@ export function formatAsMarkdownList(groups) {
  * Share a file using the Web Share API (mobile).
  * Returns true if shared successfully, false otherwise.
  */
-export async function shareFile(file, title) {
+export async function shareFile(file, title, text, url) {
   try {
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ title, files: [file] });
+    const shareData = { files: [file] };
+    if (text) shareData.text = text;
+    if (title) shareData.title = title;
+    if (url) shareData.url = url;
+    if (navigator.canShare && navigator.canShare(shareData)) {
+      await navigator.share(shareData);
       return true;
     }
   } catch (err) {

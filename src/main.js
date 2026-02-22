@@ -337,9 +337,10 @@ function updateLocalization() {
   document.getElementById("ui-sidebar-title").textContent = ui.sidebarTitle;
   document.getElementById("btn-export-png").innerHTML = '<i class="fa-solid fa-image"></i> ' + ui.btnExportPng;
   document.getElementById("btn-export-pdf").innerHTML = '<i class="fa-solid fa-file-pdf"></i> ' + ui.btnExportPdf;
+  document.getElementById("btn-copy-text").innerHTML = '<i class="fa-regular fa-clipboard"></i> ' + ui.btnCopyText;
+  document.getElementById("btn-copy-link").innerHTML = '<i class="fa-solid fa-link"></i> ' + ui.btnCopyLink;
   document.getElementById("btn-clear").title = ui.btnClear;
-  document.getElementById("btn-copy").title = ui.btnCopy;
-  document.getElementById("btn-export").title = ui.btnShare || 'Export';
+  document.getElementById("btn-export").title = ui.btnShare;
   document.title = ui.appTitle;
 }
 
@@ -403,18 +404,22 @@ document.getElementById("btn-clear").addEventListener("click", () => {
 });
 
 // Copy as markdown list (clipboard only, no share API)
-document.getElementById("btn-copy").addEventListener("click", async () => {
+document.getElementById("btn-copy-text").addEventListener("click", async () => {
   const groups = wheel.getSelectedGroups();
   if (!groups) return;
-
-  const text = formatAsMarkdownList(groups);
+  const text = `${langData.ui.shareIntro || 'Olha meus sentimentos no site'}: ${location.origin + location.pathname}\n\n` + formatAsMarkdownList(groups);
   trackCopyEmotions(currentLang);
-
+  if (isMobile() && navigator.share) {
+    try {
+      await navigator.share({ text });
+      showToast('Compartilhado!');
+    } catch (err) { showToast('Falha ao compartilhar'); }
+    return;
+  }
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(text);
     } else {
-      // Fallback for non-secure contexts (HTTP)
       const ta = document.createElement("textarea");
       ta.value = text;
       ta.style.position = "fixed";
@@ -426,7 +431,37 @@ document.getElementById("btn-copy").addEventListener("click", async () => {
     }
     showToast(langData.ui.toastCopied);
   } catch (err) {
-    console.error("Failed to copy!", err);
+    showToast('Falha ao copiar');
+  }
+});
+
+document.getElementById("btn-copy-link").addEventListener("click", async () => {
+  const link = location.origin + location.pathname + location.hash;
+  const msg = `${langData.ui.shareIntro || 'Olha meus sentimentos no site'}: ${link}`;
+  if (isMobile() && navigator.share) {
+    try {
+      await navigator.share({ text: msg, url: link });
+      showToast('Compartilhado!');
+    } catch (err) { showToast('Falha ao compartilhar'); }
+    return;
+  }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(link);
+      showToast('Link copiado!');
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = link;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      showToast('Link copiado!');
+    }
+  } catch (err) {
+    showToast('Falha ao copiar link');
   }
 });
 
@@ -455,11 +490,12 @@ document.getElementById("btn-export-png").addEventListener("click", async () => 
 
   const ui = langData.ui;
   const groups = wheel.getSelectedGroups();
-  const { blob, filename } = await generatePNG(wheel, currentLang, ui, groups);
+  const { blob, filename, url } = await generatePNG(wheel, currentLang, ui, groups);
 
   if (isMobile()) {
     const file = new File([blob], filename, { type: "image/png" });
-    const shared = await shareFile(file, ui.appTitle);
+    const shareText = `${ui.shareIntro || 'Olha meus sentimentos'}: ${url}`;
+    const shared = await shareFile(file, ui.appTitle, shareText, url);
     if (!shared) downloadBlob(blob, filename);
   } else {
     downloadBlob(blob, filename);
@@ -475,10 +511,11 @@ document.getElementById("btn-export-pdf").addEventListener("click", async () => 
   const groups = wheel.getSelectedGroups();
 
   try {
-    const { blob, filename } = await generatePDF(wheel, currentLang, ui, groups);
+    const { blob, filename, url } = await generatePDF(wheel, currentLang, ui, groups);
     if (isMobile()) {
       const file = new File([blob], filename, { type: 'application/pdf' });
-      const shared = await shareFile(file, ui.appTitle);
+      const shareText = `${ui.shareIntro || 'Olha meus sentimentos'}: ${url}`;
+      const shared = await shareFile(file, ui.appTitle, shareText, url);
       if (!shared) downloadBlob(blob, filename);
     } else {
       downloadBlob(blob, filename);
