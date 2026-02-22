@@ -18,6 +18,7 @@ html, body {
 #app {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -31,7 +32,117 @@ html, body {
 
 #wheel {
   display: block;
-  /* size controlled by JS; no CSS transforms needed */
+}
+
+/* ---- Floating Top Bar ---- */
+
+#floating-top {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 20;
+  pointer-events: none;
+}
+
+#floating-top > * {
+  pointer-events: auto;
+}
+
+.floating-lang {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.92);
+  border-radius: 8px;
+  padding: 4px 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  border: 1px solid #ddd;
+}
+
+.floating-lang label {
+  font-size: 1rem;
+}
+
+.floating-lang select {
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  padding: 4px 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.floating-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.floating-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.92);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  color: #333;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.floating-btn:hover {
+  background: #eee;
+}
+
+.floating-btn:active {
+  background: #ddd;
+}
+
+/* ---- Export dropdown ---- */
+
+#export-menu {
+  position: absolute;
+  top: 58px;
+  right: 10px;
+  z-index: 25;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#export-menu.hidden {
+  display: none;
+}
+
+#export-menu button {
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+}
+
+#export-menu button:hover {
+  background: #f0f0f0;
+}
+
+#export-menu button + button {
+  border-top: 1px solid #eee;
 }
 
 /* ---- Zoom Controls ---- */
@@ -63,30 +174,36 @@ html, body {
   line-height: 1;
 }
 
-#zoom-controls button:hover {
-  background: #eee;
-}
-
-#zoom-controls button:active {
-  background: #ddd;
-}
+#zoom-controls button:hover { background: #eee; }
+#zoom-controls button:active { background: #ddd; }
 
 /* ---- Sidebar ---- */
 
 #sidebar {
-  width: 260px;
+  width: 280px;
   min-width: 220px;
   background: #fff;
   border-left: 1px solid #ddd;
   display: flex;
   flex-direction: column;
-  padding: 20px 16px;
+  overflow: hidden;
+}
+
+#sidebar-handle {
+  display: none; /* only visible on mobile */
+}
+
+#sidebar-content {
+  flex: 1;
   overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 #sidebar h1 {
   font-size: 1.15rem;
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   color: #333;
   line-height: 1.3;
 }
@@ -94,36 +211,19 @@ html, body {
 .app-description {
   font-size: 0.82rem;
   color: #888;
-  margin: 0 0 14px;
-  line-height: 1.4;
+  margin: 0 0 20px;
+  line-height: 1.45;
 }
 
 #sidebar h2 {
-  font-size: 1.05rem;
-  margin-bottom: 12px;
-  color: #444;
+  font-size: 0.95rem;
+  margin: 0 0 10px;
+  color: #555;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #eee;
 }
 
-.lang-selector {
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-}
-
-.lang-selector label {
-  font-size: 1.1rem;
-}
-
-.lang-selector select {
-  flex: 1;
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 0.9rem;
-  background: #fff;
-}
+/* ---- Selected List ---- */
 
 #selected-list {
   list-style: none;
@@ -134,54 +234,39 @@ html, body {
 }
 
 #selected-list li {
-  padding: 4px 6px;
+  padding: 3px 8px;
   border-radius: 4px;
 }
 
 #selected-list li.empty {
   color: #999;
   font-style: italic;
+  padding: 8px;
 }
 
 #selected-list li.group-header {
   font-weight: 700;
-  margin-top: 8px;
-  color: #555;
-  font-size: 0.85rem;
+  margin-top: 12px;
+  padding: 6px 8px 4px;
+  color: #444;
+  font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  background: #f7f7f7;
+  border-radius: 4px;
 }
 
-/* ---- Buttons ---- */
-
-.button-group {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+#selected-list li.group-header:first-child {
+  margin-top: 0;
 }
 
-.button-group button {
-  flex: 1 1 0;
-  padding: 8px 10px;
-  font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #fafafa;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  white-space: nowrap;
+#selected-list li:not(.group-header):not(.empty) {
+  padding-left: 16px;
+  color: #555;
 }
 
-.button-group button:hover {
-  background: #eee;
-  border-color: #aaa;
-}
-
-hr {
-  border: none;
-  border-top: 1px solid #eee;
-  margin: 12px 0;
-}
+/* ---- Desktop: hide floating top (sidebar has its own controls) ---- */
+/* We keep the floating top ALWAYS visible for consistency */
 
 /* ---- Toast ---- */
 
@@ -206,7 +291,12 @@ hr {
   transform: translateX(-50%) translateY(0);
 }
 
-/* ---- Responsive Mobile ---- */
+/* ================================================================
+   RESPONSIVE: MOBILE (< 700px)
+   - Sidebar becomes a collapsible bottom sheet
+   - Canvas fills the viewport
+   - Floating controls on top of the wheel
+   ================================================================ */
 
 @media (max-width: 700px) {
   html, body {
@@ -215,8 +305,7 @@ hr {
 
   #app {
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
+    position: relative;
   }
 
   #canvas-container {
@@ -225,19 +314,68 @@ hr {
     overflow: hidden;
   }
 
+  /* Floating top adjustments */
+  #floating-top {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+  }
+
+  .floating-lang select {
+    font-size: 0.8rem;
+    max-width: 110px;
+  }
+
+  .floating-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  #export-menu {
+    top: 52px;
+    right: 8px;
+  }
+
+  /* Sidebar → bottom sheet */
   #sidebar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
     min-width: unset;
     border-left: none;
     border-top: 1px solid #ddd;
-    max-height: 38vh;
-    flex-shrink: 0;
-    padding: 12px 14px;
-    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    max-height: 55vh;
+    z-index: 30;
+    transition: transform 0.3s ease;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.1);
   }
 
-  .lang-selector {
-    margin-bottom: 10px;
+  #sidebar.collapsed {
+    transform: translateY(calc(100% - 46px));
+  }
+
+  #sidebar-handle {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 6px;
+    cursor: pointer;
+    touch-action: none;
+    flex-shrink: 0;
+  }
+
+  .handle-bar {
+    width: 40px;
+    height: 4px;
+    background: #ccc;
+    border-radius: 2px;
+  }
+
+  #sidebar-content {
+    padding: 4px 14px 16px;
   }
 
   #sidebar h1 {
@@ -247,31 +385,22 @@ hr {
 
   .app-description {
     font-size: 0.75rem;
-    margin: 0 0 8px;
+    margin: 0 0 10px;
   }
 
   #sidebar h2 {
-    font-size: 0.95rem;
-    margin-bottom: 8px;
+    font-size: 0.88rem;
+    margin: 0 0 6px;
   }
 
   #selected-list {
-    max-height: 80px;
+    max-height: 30vh;
     overflow-y: auto;
     margin-bottom: 8px;
   }
 
-  .button-group button {
-    padding: 6px 8px;
-    font-size: 0.78rem;
-  }
-
-  hr {
-    margin: 8px 0;
-  }
-
   #zoom-controls {
-    bottom: 10px;
+    bottom: 55px; /* above the collapsed sidebar handle */
     right: 10px;
   }
 
@@ -279,5 +408,9 @@ hr {
     width: 36px;
     height: 36px;
     font-size: 1rem;
+  }
+
+  #toast {
+    bottom: 60px;
   }
 }

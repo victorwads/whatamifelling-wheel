@@ -4,64 +4,74 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Roda das Emoções</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- ===== MAIN LAYOUT ===== -->
   <div id="app">
 
-    <!-- Left: Canvas area -->
+    <!-- Canvas area (fills screen on mobile) -->
     <div id="canvas-container">
       <canvas id="wheel"></canvas>
+
+      <!-- Floating top bar: language + clear + export -->
+      <div id="floating-top">
+        <div class="floating-lang">
+          <label for="lang-select"><i class="fa-solid fa-globe"></i></label>
+          <select id="lang-select">
+            <option value="pt">Português</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="it">Italiano</option>
+            <option value="ru">Русский</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="zh">中文</option>
+            <option value="ar">العربية</option>
+            <option value="hi">हिन्दी</option>
+            <option value="tr">Türkçe</option>
+          </select>
+        </div>
+        <div class="floating-actions">
+          <button id="btn-clear" class="floating-btn" title="Limpar"><i class="fa-solid fa-trash-can"></i></button>
+          <button id="btn-copy" class="floating-btn" title="Copiar"><i class="fa-regular fa-clipboard"></i></button>
+          <button id="btn-export" class="floating-btn" title="Exportar"><i class="fa-solid fa-download"></i></button>
+        </div>
+      </div>
+
+      <!-- Export dropdown (appears on btn-export click) -->
+      <div id="export-menu" class="hidden">
+        <button id="btn-export-png"><i class="fa-solid fa-image"></i> Exportar PNG</button>
+        <button id="btn-export-pdf"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+      </div>
+
       <!-- Zoom controls -->
       <div id="zoom-controls">
-        <button id="btn-zoom-in" title="Zoom in">＋</button>
-        <button id="btn-zoom-reset" title="Reset zoom">⟲</button>
-        <button id="btn-zoom-out" title="Zoom out">－</button>
+        <button id="btn-zoom-in" title="Zoom in"><i class="fa-solid fa-plus"></i></button>
+        <button id="btn-zoom-reset" title="Reset zoom"><i class="fa-solid fa-arrows-rotate"></i></button>
+        <button id="btn-zoom-out" title="Zoom out"><i class="fa-solid fa-minus"></i></button>
       </div>
     </div>
 
-    <!-- Right / Bottom: Sidebar -->
+    <!-- Sidebar (desktop: right panel | mobile: collapsible bottom sheet) -->
     <aside id="sidebar">
-      <div class="lang-selector">
-        <label for="lang-select">🌐</label>
-        <select id="lang-select">
-          <option value="pt">Português</option>
-          <option value="en">English</option>
-          <option value="es">Español</option>
-          <option value="fr">Français</option>
-          <option value="de">Deutsch</option>
-          <option value="it">Italiano</option>
-          <option value="ru">Русский</option>
-          <option value="ja">日本語</option>
-          <option value="ko">한국어</option>
-          <option value="zh">中文</option>
-          <option value="ar">العربية</option>
-          <option value="hi">हिन्दी</option>
-          <option value="tr">Türkçe</option>
-        </select>
+      <!-- Toggle handle for mobile bottom sheet -->
+      <div id="sidebar-handle">
+        <span class="handle-bar"></span>
       </div>
 
-      <h1 id="ui-app-title">Roda das Emoções</h1>
-      <p id="ui-app-description" class="app-description">Selecione as emoções que você está sentindo clicando nelas. Exporte ou compartilhe para registrar como você se sente.</p>
+      <div id="sidebar-content">
+        <h1 id="ui-app-title">Roda das Emoções</h1>
+        <p id="ui-app-description" class="app-description">Selecione as emoções que você está sentindo clicando nelas. Exporte ou compartilhe para registrar como você se sente.</p>
 
-      <h2 id="ui-sidebar-title">Emoções Selecionadas</h2>
+        <h2 id="ui-sidebar-title">Emoções Selecionadas</h2>
 
-      <ul id="selected-list">
-        <li class="empty">Nenhuma emoção selecionada</li>
-      </ul>
-
-      <div class="button-group">
-        <button id="btn-clear" title="Limpar seleção">🗑 Limpar</button>
-        <button id="btn-copy" title="Copiar lista para área de transferência">📋 Copiar</button>
-      </div>
-
-      <hr />
-
-      <div class="button-group">
-        <button id="btn-export-png" title="Exportar a roda como imagem PNG">⬇ Exportar PNG</button>
-        <button id="btn-export-pdf" title="Exportar para PDF (via impressão)">📄 Exportar PDF</button>
+        <ul id="selected-list">
+          <li class="empty">Nenhuma emoção selecionada</li>
+        </ul>
       </div>
     </aside>
 

@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebas
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
 import { EmotionWheel } from './js/wheel.js';
 import { LANGUAGES } from './js/data.js';
+import { generatePNG, generatePDFHtml, formatAsMarkdownList, shareFile, downloadBlob, isMobile } from './js/export.js';
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -124,7 +125,7 @@ let pinchPrevCx = 0;
 let pinchPrevCy = 0;
 
 container.addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#zoom-controls")) return;
+  if (e.target.closest("#zoom-controls") || e.target.closest("#floating-top") || e.target.closest("#export-menu")) return;
   e.preventDefault();
   container.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -286,7 +287,6 @@ langSelect.addEventListener("change", (e) => {
   
   logEvent(analytics, 'select_content', { content_type: 'language', item_id: currentLang });
   
-  // Update wheel data and redraw
   wheel.setSectors(langData.sectors);
   wheel.draw();
   
@@ -303,10 +303,11 @@ function updateLocalization() {
   document.getElementById("ui-app-title").textContent = ui.appTitle;
   document.getElementById("ui-app-description").textContent = ui.appDescription;
   document.getElementById("ui-sidebar-title").textContent = ui.sidebarTitle;
-  document.getElementById("btn-clear").textContent = ui.btnClear;
-  document.getElementById("btn-copy").textContent = ui.btnCopy;
-  document.getElementById("btn-export-png").textContent = ui.btnExportPng;
-  document.getElementById("btn-export-pdf").textContent = ui.btnExportPdf;
+  document.getElementById("btn-export-png").innerHTML = '<i class="fa-solid fa-image"></i> ' + ui.btnExportPng;
+  document.getElementById("btn-export-pdf").innerHTML = '<i class="fa-solid fa-file-pdf"></i> ' + ui.btnExportPdf;
+  document.getElementById("btn-clear").title = ui.btnClear;
+  document.getElementById("btn-copy").title = ui.btnCopy;
+  document.getElementById("btn-export").title = ui.btnShare || 'Export';
   document.title = ui.appTitle;
 }
 
@@ -335,218 +336,116 @@ function updateSidebar() {
 }
 
 // ---------------------------------------------------------------------------
-// 9. BUTTONS
+// 9. BUTTONS — Clear, Copy, Export
 // ---------------------------------------------------------------------------
 
+// Clear selection
 document.getElementById("btn-clear").addEventListener("click", () => {
   wheel.clearSelection();
   wheel.draw();
   updateSidebar();
 });
 
+// Copy as markdown list (clipboard only, no share API)
 document.getElementById("btn-copy").addEventListener("click", async () => {
   const groups = wheel.getSelectedGroups();
   if (!groups) return;
 
-  const words = Object.values(groups).flat().join(", ");
+  const text = formatAsMarkdownList(groups);
   logEvent(analytics, 'share', { method: 'copy', content_type: 'text' });
 
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: langData.ui.sidebarTitle,
-        text: words
-      });
-      return;
-    } catch (err) {
-      if (err.name !== 'AbortError') console.error("Share failed:", err);
-    }
-  }
-
   try {
-    await navigator.clipboard.writeText(words);
+    await navigator.clipboard.writeText(text);
     showToast(langData.ui.toastCopied);
   } catch (err) {
     console.error("Failed to copy!", err);
   }
 });
 
+// Export button → toggle dropdown menu
+const exportBtn = document.getElementById("btn-export");
+const exportMenu = document.getElementById("export-menu");
+
+exportBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  exportMenu.classList.toggle("hidden");
+});
+
+// Close export menu when clicking elsewhere
+document.addEventListener("click", () => {
+  exportMenu.classList.add("hidden");
+});
+
+// Export PNG: share on mobile, download on desktop
 document.getElementById("btn-export-png").addEventListener("click", async () => {
+  exportMenu.classList.add("hidden");
   logEvent(analytics, 'share', { method: 'png', content_type: 'image' });
-  
+
   const ui = langData.ui;
-  const wheelDataUrl = wheel.exportDataURL();
-  const wheelImg = new Image();
-  wheelImg.src = wheelDataUrl;
-  await new Promise(r => { wheelImg.onload = r; });
-
-  // Build a nice PNG with title, date, wheel, and selected emotions
-  const now = new Date();
-  const dateStr = now.toLocaleDateString(currentLang, { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString(currentLang, { hour: '2-digit', minute: '2-digit' });
-  const dateTimeStr = `${ui.exportDateLabel}: ${dateStr}, ${timeStr}`;
   const groups = wheel.getSelectedGroups();
+  const { blob, filename } = await generatePNG(wheel, currentLang, ui, groups);
 
-  const dpr = window.devicePixelRatio || 1;
-  const W = 1200;  // export width
-  const pad = 40;
-  const wheelSize = W - pad * 2;
-  let H = pad + 60 + 28 + 24 + pad + wheelSize + pad; // title + date + desc + wheel
-
-  // Calculate space for selected emotions list
-  let listLines = [];
-  if (groups) {
-    listLines.push(''); // spacer
-    for (const [sectorName, words] of Object.entries(groups)) {
-      listLines.push(`▸ ${sectorName}`);
-      listLines.push(`  ${words.join(', ')}`);
-    }
-    H += listLines.length * 26 + pad;
-  }
-
-  const offscreen = document.createElement('canvas');
-  offscreen.width = W * dpr;
-  offscreen.height = H * dpr;
-  const c = offscreen.getContext('2d');
-  c.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  // Background
-  c.fillStyle = '#f8f8f8';
-  c.fillRect(0, 0, W, H);
-
-  let y = pad;
-
-  // Title
-  c.fillStyle = '#222';
-  c.font = 'bold 36px "Segoe UI", system-ui, sans-serif';
-  c.textAlign = 'center';
-  c.fillText(ui.appTitle, W / 2, y + 36);
-  y += 52;
-
-  // Date/time
-  c.fillStyle = '#666';
-  c.font = '18px "Segoe UI", system-ui, sans-serif';
-  c.fillText(dateTimeStr, W / 2, y + 18);
-  y += 32;
-
-  // Description
-  c.fillStyle = '#888';
-  c.font = '14px "Segoe UI", system-ui, sans-serif';
-  c.fillText(ui.appDescription, W / 2, y + 14);
-  y += 32;
-
-  // Wheel
-  c.drawImage(wheelImg, pad, y, wheelSize, wheelSize);
-  y += wheelSize + 20;
-
-  // Selected emotions list
-  if (groups && listLines.length > 0) {
-    c.textAlign = 'left';
-    for (const line of listLines) {
-      if (line === '') { y += 8; continue; }
-      if (line.startsWith('▸')) {
-        c.fillStyle = '#444';
-        c.font = 'bold 18px "Segoe UI", system-ui, sans-serif';
-      } else {
-        c.fillStyle = '#555';
-        c.font = '16px "Segoe UI", system-ui, sans-serif';
-      }
-      c.fillText(line, pad + 10, y + 18);
-      y += 26;
-    }
-  }
-
-  // Subtle footer line
-  c.strokeStyle = '#ddd';
-  c.lineWidth = 1;
-  c.beginPath();
-  c.moveTo(pad, H - pad + 10);
-  c.lineTo(W - pad, H - pad + 10);
-  c.stroke();
-
-  const dataUrl = offscreen.toDataURL('image/png');
-  const filename = `emotion-wheel-${currentLang}.png`;
-
-  try {
-    const blob = await (await fetch(dataUrl)).blob();
+  if (isMobile()) {
     const file = new File([blob], filename, { type: "image/png" });
-    
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        title: ui.appTitle,
-        files: [file]
-      });
-    } else {
-      const link = document.createElement("a");
-      link.download = filename;
-      link.href = dataUrl;
-      link.click();
-    }
-  } catch (err) {
-    if (err.name !== 'AbortError') console.error("Error sharing PNG:", err);
+    const shared = await shareFile(file, ui.appTitle);
+    if (!shared) downloadBlob(blob, filename);
+  } else {
+    downloadBlob(blob, filename);
   }
 });
 
-document.getElementById("btn-export-pdf").addEventListener("click", () => {
+// Export PDF: share on mobile, download on desktop
+document.getElementById("btn-export-pdf").addEventListener("click", async () => {
+  exportMenu.classList.add("hidden");
   logEvent(analytics, 'share', { method: 'pdf', content_type: 'document' });
-  
-  const dataUrl = wheel.exportDataURL();
-  const groups = wheel.getSelectedGroups();
+
   const ui = langData.ui;
-  const now = new Date();
-  const dateStr = now.toLocaleDateString(currentLang, { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString(currentLang, { hour: '2-digit', minute: '2-digit' });
-  const dateTimeStr = `${dateStr} &mdash; ${timeStr}`;
+  const groups = wheel.getSelectedGroups();
 
-  let listingHtml = "";
-  if (groups) {
-    listingHtml += '<div class="page-break"></div>';
-    listingHtml += '<div class="listing-page">';
-    listingHtml += `<h1>${ui.pdfListTitle}</h1>`;
-    listingHtml += `<p class="date">${ui.exportDateLabel}: ${dateTimeStr}</p>`;
-    for (const [sectorName, words] of Object.entries(groups)) {
-      listingHtml += `<h2>${sectorName}</h2><ul>`;
-      for (const w of words) listingHtml += `<li>${w}</li>`;
-      listingHtml += '</ul>';
+  if (isMobile()) {
+    // On mobile: generate HTML, render as blob for sharing
+    const html = generatePDFHtml(wheel, currentLang, ui, groups);
+    const htmlBlob = new Blob([html], { type: 'text/html' });
+    const file = new File([htmlBlob], `emotion-wheel-${currentLang}.html`, { type: 'text/html' });
+    const shared = await shareFile(file, ui.appTitle);
+    if (!shared) {
+      // Fallback: open print window
+      const win = window.open("");
+      win.document.write(html);
+      win.document.close();
     }
-    listingHtml += '</div>';
+  } else {
+    // Desktop: open in print window for PDF save
+    const html = generatePDFHtml(wheel, currentLang, ui, groups);
+    const win = window.open("");
+    win.document.write(html);
+    win.document.close();
   }
-
-  const win = window.open("");
-  win.document.write(`
-    <html>
-    <head><title>${ui.pdfTitle}</title>
-    <style>
-      @media print { .page-break { page-break-before: always; } }
-      body { margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #222; }
-      .wheel-page {
-        display: flex; flex-direction: column; align-items: center;
-        justify-content: flex-start; min-height: 100vh; padding: 40px 40px 20px;
-      }
-      .wheel-page h1 { font-size: 2rem; margin: 0 0 4px; color: #333; }
-      .wheel-page .date { font-size: 0.95rem; color: #777; margin: 0 0 4px; }
-      .wheel-page .desc { font-size: 0.85rem; color: #999; margin: 0 0 20px; max-width: 600px; text-align: center; }
-      .wheel-page img { max-width: 90vw; max-height: 72vh; }
-      .listing-page { padding: 40px 60px; }
-      .listing-page h1 { font-size: 1.6rem; border-bottom: 2px solid #ddd; padding-bottom: 8px; margin-bottom: 4px; }
-      .listing-page .date { font-size: 0.9rem; color: #777; margin-bottom: 16px; }
-      .listing-page h2 { font-size: 1.1rem; text-transform: uppercase; margin: 16px 0 6px; color: #555; }
-      .listing-page li { font-size: 0.95rem; margin: 2px 0; }
-    </style>
-    </head>
-    <body onload="window.print()">
-      <div class="wheel-page">
-        <h1>${ui.appTitle}</h1>
-        <p class="date">${dateTimeStr}</p>
-        <p class="desc">${ui.appDescription}</p>
-        <img src="${dataUrl}" />
-      </div>
-      ${listingHtml}
-    </body>
-    </html>
-  `);
-  win.document.close();
 });
+
+// ---------------------------------------------------------------------------
+// 10. MOBILE: collapsible sidebar (bottom sheet)
+// ---------------------------------------------------------------------------
+
+const sidebar = document.getElementById("sidebar");
+const sidebarHandle = document.getElementById("sidebar-handle");
+
+sidebarHandle.addEventListener("click", () => {
+  sidebar.classList.toggle("collapsed");
+});
+
+// On mobile, collapse sidebar when tapping the canvas area
+container.addEventListener("pointerdown", (e) => {
+  if (e.target.closest("#zoom-controls") || e.target.closest("#floating-top") || e.target.closest("#export-menu")) return;
+  // Only on mobile: the sidebar handle is visible only on mobile
+  if (window.innerWidth <= 700 && !sidebar.classList.contains("collapsed")) {
+    // Don't auto-collapse — let user do it via handle
+  }
+});
+
+// ---------------------------------------------------------------------------
+// UTILS
+// ---------------------------------------------------------------------------
 
 function showToast(msg) {
   const t = document.getElementById("toast");
