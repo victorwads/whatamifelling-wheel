@@ -238,19 +238,43 @@ export async function generatePNG(wheel, lang, ui, groups) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Load a script from CDN. Returns a promise.
+ */
+function loadScript(src, testReady, label) {
+  return new Promise((resolve, reject) => {
+    if (testReady()) return resolve();
+    const script = document.createElement('script');
+    script.src = src;
+    const timeout = setTimeout(() => reject(new Error(`${label} load timeout`)), 15000);
+    script.onload = () => { clearTimeout(timeout); resolve(); };
+    script.onerror = () => { clearTimeout(timeout); reject(new Error(`Failed to load ${label} CDN`)); };
+    document.head.appendChild(script);
+  });
+}
+
+/**
  * Dynamically load jsPDF library from CDN.
  * Returns the jsPDF constructor.
  */
 async function loadJsPDF() {
-  if (window.jspdf) return window.jspdf.jsPDF;
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/jspdf@4.2.0/dist/jspdf.umd.min.js';
-    const timeout = setTimeout(() => reject(new Error('jsPDF load timeout')), 10000);
-    script.onload = () => { clearTimeout(timeout); resolve(window.jspdf.jsPDF); };
-    script.onerror = () => { clearTimeout(timeout); reject(new Error('Failed to load jsPDF CDN')); };
-    document.head.appendChild(script);
-  });
+  await loadScript(
+    'https://unpkg.com/jspdf@4.2.0/dist/jspdf.umd.min.js',
+    () => !!window.jspdf,
+    'jsPDF'
+  );
+  return window.jspdf.jsPDF;
+}
+
+/**
+ * Dynamically load svg2pdf.js library from CDN (must be loaded AFTER jsPDF).
+ * Adds the doc.svg() method to jsPDF instances.
+ */
+async function loadSvg2Pdf() {
+  await loadScript(
+    'https://unpkg.com/svg2pdf.js@2.2.4/dist/svg2pdf.umd.min.js',
+    () => !!window.svg2pdf,
+    'svg2pdf.js'
+  );
 }
 
 /**
@@ -261,8 +285,8 @@ async function loadJsPDF() {
  */
 export async function generatePDF(wheel, lang, ui, groups) {
   const JsPDF = await loadJsPDF();
+  await loadSvg2Pdf();
 
-  const wheelDataUrl = wheel.exportDataURL(4);
   const { full: dateTimeStr } = formatDateTime(lang, ui);
   const pctData = computePercentages(groups, wheel.sectors);
   const shareUrl = buildShareURL(wheel.selected);
@@ -296,10 +320,14 @@ export async function generatePDF(wheel, lang, ui, groups) {
   doc.text(descLines, pageW / 2, y + 4, { align: 'center' });
   y += descLines.length * 3.5 + 6;
 
-  // Wheel image (centered)
+  // Wheel as vectorized SVG → PDF paths (not rasterized PNG)
   const wheelMM = 155;
   const wheelX = (pageW - wheelMM) / 2;
-  doc.addImage(wheelDataUrl, 'PNG', wheelX, y, wheelMM, wheelMM);
+  const svgString = wheel.exportSVG();
+  const parser = new DOMParser();
+  const svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
+  const svgElem = svgDoc.documentElement;
+  await doc.svg(svgElem, { x: wheelX, y: y, width: wheelMM, height: wheelMM });
   y += wheelMM + 6;
 
   // Percentage bar + emotions
