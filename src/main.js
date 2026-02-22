@@ -72,11 +72,12 @@ if (initialSelected) {
 let vpScale = 1;
 let vpTx = 0;
 let vpTy = 0;
+let vpRotation = 0;
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 8;
 
 function updateView() {
-  wheel.setViewport(vpScale, vpTx, vpTy);
+  wheel.setViewport(vpScale, vpTx, vpTy, vpRotation);
   wheel.draw();
 }
 
@@ -96,6 +97,7 @@ function resetView() {
   vpScale = Math.min(cw, ch) / ws;
   vpTx = (cw - ws * vpScale) / 2;
   vpTy = (ch - ws * vpScale) / 2;
+  vpRotation = 0;
   updateView();
 }
 
@@ -115,10 +117,22 @@ function clientToWorld(clientX, clientY) {
   const rect = container.getBoundingClientRect();
   const sx = clientX - rect.left;
   const sy = clientY - rect.top;
-  return {
-    x: (sx - vpTx) / vpScale,
-    y: (sy - vpTy) / vpScale
-  };
+  
+  let wx = (sx - vpTx) / vpScale;
+  let wy = (sy - vpTy) / vpScale;
+  
+  if (vpRotation) {
+    const cx = wheel.cx;
+    const cy = wheel.cy;
+    const dx = wx - cx;
+    const dy = wy - cy;
+    const cos = Math.cos(-vpRotation);
+    const sin = Math.sin(-vpRotation);
+    wx = cx + dx * cos - dy * sin;
+    wy = cy + dx * sin + dy * cos;
+  }
+  
+  return { x: wx, y: wy };
 }
 
 // ---------------------------------------------------------------------------
@@ -150,6 +164,7 @@ let dragStartTx = 0;
 let dragStartTy = 0;
 let didDrag = false;
 let pinchPrevDist = 0;
+let pinchPrevAngle = 0;
 let pinchPrevCx = 0;
 let pinchPrevCy = 0;
 
@@ -170,6 +185,7 @@ container.addEventListener("pointerdown", (e) => {
     dragging = false;
     const pts = [...pointers.values()];
     pinchPrevDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    pinchPrevAngle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
     const rect = container.getBoundingClientRect();
     pinchPrevCx = (pts[0].x + pts[1].x) / 2 - rect.left;
     pinchPrevCy = (pts[0].y + pts[1].y) / 2 - rect.top;
@@ -181,9 +197,10 @@ container.addEventListener("pointermove", (e) => {
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
   if (pointers.size === 2) {
-    // Pinch zoom + pan
+    // Pinch zoom + pan + rotate
     const pts = [...pointers.values()];
     const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    const angle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
     const rect = container.getBoundingClientRect();
     const cx = (pts[0].x + pts[1].x) / 2 - rect.left;
     const cy = (pts[0].y + pts[1].y) / 2 - rect.top;
@@ -201,7 +218,29 @@ container.addEventListener("pointermove", (e) => {
     vpTy = cy - worldY * newScale;
     vpScale = newScale;
 
+    // Rotate: rotate around current midpoint
+    let angleDiff = angle - pinchPrevAngle;
+    if (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+    if (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+    
+    if (angleDiff !== 0) {
+      const rx = (cx - vpTx) / vpScale - wheel.cx;
+      const ry = (cy - vpTy) / vpScale - wheel.cy;
+      
+      const cos = Math.cos(angleDiff);
+      const sin = Math.sin(angleDiff);
+      
+      const rxNew = rx * cos - ry * sin;
+      const ryNew = rx * sin + ry * cos;
+      
+      vpTx = cx - vpScale * (wheel.cx + rxNew);
+      vpTy = cy - vpScale * (wheel.cy + ryNew);
+      
+      vpRotation += angleDiff;
+    }
+
     pinchPrevDist = dist;
+    pinchPrevAngle = angle;
     pinchPrevCx = cx;
     pinchPrevCy = cy;
     updateView();

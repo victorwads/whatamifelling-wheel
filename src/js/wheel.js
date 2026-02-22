@@ -57,10 +57,11 @@ export class EmotionWheel {
     }
   }
 
-  setViewport(scale, tx, ty) {
+  setViewport(scale, tx, ty, rotation = 0) {
     this.vpScale = scale;
     this.vpTx = tx;
     this.vpTy = ty;
+    this.vpRotation = rotation;
   }
 
   draw() {
@@ -71,6 +72,11 @@ export class EmotionWheel {
     // Apply viewport transform (world → screen)
     this.ctx.translate(this.vpTx, this.vpTy);
     this.ctx.scale(this.vpScale, this.vpScale);
+    if (this.vpRotation) {
+      this.ctx.translate(this.cx, this.cy);
+      this.ctx.rotate(this.vpRotation);
+      this.ctx.translate(-this.cx, -this.cy);
+    }
 
     // 1. Draw all slices (filled)
     for (let s = 0; s < this.sectors.length; s++) {
@@ -188,7 +194,8 @@ export class EmotionWheel {
     this.ctx.translate(this.cx, this.cy);
     this.ctx.rotate(angle);
 
-    const normAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const screenAngle = angle + (this.vpRotation || 0);
+    const normAngle = ((screenAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     const flip = normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2;
 
     // Fixed font size based on world geometry, NOT per-word arc length.
@@ -214,7 +221,9 @@ export class EmotionWheel {
     this.ctx.save();
     this.ctx.translate(this.cx, this.cy);
     this.ctx.rotate(angle);
-    const normAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    
+    const screenAngle = angle + (this.vpRotation || 0);
+    const normAngle = ((screenAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     const flip = normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2;
 
     const fontSize = Math.max(7, this.innerR * 0.13);
@@ -303,6 +312,7 @@ export class EmotionWheel {
     const origS = this.vpScale;
     const origTx = this.vpTx;
     const origTy = this.vpTy;
+    const origRot = this.vpRotation;
 
     this._dprOverride = dpr;
     this.ctx = offscreen.getContext('2d');
@@ -311,6 +321,7 @@ export class EmotionWheel {
     this.vpScale = 1;
     this.vpTx = 0;
     this.vpTy = 0;
+    this.vpRotation = 0;
 
     this.draw();
     const url = offscreen.toDataURL('image/png');
@@ -323,6 +334,7 @@ export class EmotionWheel {
     this.vpScale = origS;
     this.vpTx = origTx;
     this.vpTy = origTy;
+    this.vpRotation = origRot;
 
     return url;
   }
