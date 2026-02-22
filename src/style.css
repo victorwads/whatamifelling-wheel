@@ -201,6 +201,38 @@ html, body {
   flex-direction: column;
 }
 
+/* ---- Author bar ---- */
+
+.sidebar-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #999;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.sidebar-author span {
+  margin-right: auto;
+}
+
+.sidebar-author strong {
+  color: #666;
+}
+
+.sidebar-author a {
+  color: #888;
+  font-size: 1.1rem;
+  transition: color 0.15s;
+  text-decoration: none;
+}
+
+.sidebar-author a:hover {
+  color: #333;
+}
+
 #sidebar h1 {
   font-size: 1.15rem;
   margin: 0 0 6px;

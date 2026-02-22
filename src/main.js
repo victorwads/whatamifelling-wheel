@@ -1,21 +1,14 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
 import { EmotionWheel } from './js/wheel.js';
 import { LANGUAGES } from './js/data.js';
 import { generatePNG, generatePDFHtml, formatAsMarkdownList, shareFile, downloadBlob, isMobile } from './js/export.js';
+import {
+  setLanguageProperty, trackLanguageChange, trackEmotionClick,
+  trackClearSelection, trackCopyEmotions, trackExportMenuOpen,
+  trackExportPNG, trackExportPDF, trackSidebarToggle
+} from './js/analytics.js';
 
-// Initialize Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyCREHXxyytzQfisgP3c2syZwgHtJLxCfD4",
-  authDomain: "whatamifelling.firebaseapp.com",
-  projectId: "whatamifelling",
-  storageBucket: "whatamifelling.firebasestorage.app",
-  messagingSenderId: "591867024928",
-  appId: "1:591867024928:web:cde827caa412c6f6368e45",
-  measurementId: "G-GW7XVYLDKX"
-};
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// English data for standardized analytics labels
+const enSectors = LANGUAGES.en.sectors;
 
 const canvas = document.getElementById("wheel");
 const container = document.getElementById("canvas-container");
@@ -37,6 +30,7 @@ let currentLang = localStorage.getItem('emotion-wheel-lang');
 if (!currentLang || !LANGUAGES[currentLang]) currentLang = getBrowserLanguage();
 langSelect.value = currentLang;
 let langData = LANGUAGES[currentLang];
+setLanguageProperty(currentLang);
 
 const wheel = new EmotionWheel(canvas, langData.sectors);
 
@@ -267,10 +261,11 @@ function handleTap(x, y) {
 
     const sector = langData.sectors[hit.sectorIdx];
     const word = sector.rings[hit.ringIdx][hit.wordIdx];
-    logEvent(analytics, 'select_item', {
-      item_list_name: 'emotion_wheel',
-      items: [{ item_name: word, item_category: sector.name, item_variant: currentLang }]
-    });
+    // Use English names for analytics standardization
+    const enSector = enSectors[hit.sectorIdx];
+    const enWord = enSector.rings[hit.ringIdx][hit.wordIdx];
+    const enCategory = enSector.name;
+    trackEmotionClick(enWord, enCategory, hit.ringIdx, currentLang);
   }
 }
 
@@ -290,7 +285,8 @@ langSelect.addEventListener("change", (e) => {
   langData = LANGUAGES[currentLang];
   localStorage.setItem('emotion-wheel-lang', currentLang);
   
-  logEvent(analytics, 'select_content', { content_type: 'language', item_id: currentLang });
+  trackLanguageChange(currentLang);
+  setLanguageProperty(currentLang);
   
   wheel.setSectors(langData.sectors);
   wheel.draw();
@@ -346,6 +342,7 @@ function updateSidebar() {
 
 // Clear selection
 document.getElementById("btn-clear").addEventListener("click", () => {
+  trackClearSelection();
   wheel.clearSelection();
   wheel.draw();
   updateSidebar();
@@ -357,7 +354,7 @@ document.getElementById("btn-copy").addEventListener("click", async () => {
   if (!groups) return;
 
   const text = formatAsMarkdownList(groups);
-  logEvent(analytics, 'share', { method: 'copy', content_type: 'text' });
+  trackCopyEmotions(currentLang);
 
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -385,7 +382,11 @@ const exportMenu = document.getElementById("export-menu");
 
 exportBtn.addEventListener("click", (e) => {
   e.stopPropagation();
+  const willOpen = exportMenu.classList.contains("hidden");
   exportMenu.classList.toggle("hidden");
+  if (willOpen) {
+    trackExportMenuOpen();
+  }
 });
 
 // Close export menu when clicking elsewhere
@@ -396,7 +397,7 @@ document.addEventListener("click", () => {
 // Export PNG: share on mobile, download on desktop
 document.getElementById("btn-export-png").addEventListener("click", async () => {
   exportMenu.classList.add("hidden");
-  logEvent(analytics, 'share', { method: 'png', content_type: 'image' });
+  trackExportPNG(currentLang);
 
   const ui = langData.ui;
   const groups = wheel.getSelectedGroups();
@@ -414,7 +415,7 @@ document.getElementById("btn-export-png").addEventListener("click", async () => 
 // Export PDF: share on mobile, download on desktop
 document.getElementById("btn-export-pdf").addEventListener("click", async () => {
   exportMenu.classList.add("hidden");
-  logEvent(analytics, 'share', { method: 'pdf', content_type: 'document' });
+  trackExportPDF(currentLang);
 
   const ui = langData.ui;
   const groups = wheel.getSelectedGroups();
@@ -448,7 +449,9 @@ const sidebar = document.getElementById("sidebar");
 const sidebarHandle = document.getElementById("sidebar-handle");
 
 sidebarHandle.addEventListener("click", () => {
+  const willCollapse = !sidebar.classList.contains("collapsed");
   sidebar.classList.toggle("collapsed");
+  trackSidebarToggle(willCollapse ? 'collapse' : 'expand');
 });
 
 // On mobile, collapse sidebar when tapping the canvas area
