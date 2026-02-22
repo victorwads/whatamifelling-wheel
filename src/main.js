@@ -4,8 +4,20 @@ import { LANGUAGES } from './js/data.js';
 const canvas = document.getElementById("wheel");
 const langSelect = document.getElementById("lang-select");
 
+// Detect browser language
+function getBrowserLanguage() {
+  const userLangs = navigator.languages || [navigator.language || navigator.userLanguage];
+  for (let lang of userLangs) {
+    if (!lang) continue;
+    const shortLang = lang.split('-')[0].toLowerCase();
+    if (LANGUAGES[shortLang]) return shortLang;
+  }
+  return "pt"; // Fallback
+}
+
 // Current language state
-let currentLang = langSelect.value || "pt";
+let currentLang = getBrowserLanguage();
+langSelect.value = currentLang;
 let langData = LANGUAGES[currentLang];
 
 const wheel = new EmotionWheel(canvas, langData.sectors);
