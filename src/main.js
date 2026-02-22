@@ -322,10 +322,30 @@ function updateSidebar() {
     return;
   }
 
-  for (const [sectorName, words] of Object.entries(groups)) {
+  // Calculate totals for percentage bar
+  const totalSelected = Object.values(groups).reduce((sum, g) => sum + g.words.length, 0);
+
+  // Percentage bar
+  const barLi = document.createElement("li");
+  barLi.className = "percentage-bar-wrapper";
+  const bar = document.createElement("div");
+  bar.className = "percentage-bar";
+  for (const [, { sectorIdx, words }] of Object.entries(groups)) {
+    const pct = (words.length / totalSelected) * 100;
+    const seg = document.createElement("div");
+    const [r, g, b] = langData.sectors[sectorIdx].baseColor;
+    seg.style.width = pct + "%";
+    seg.style.background = `rgb(${r},${g},${b})`;
+    bar.appendChild(seg);
+  }
+  barLi.appendChild(bar);
+  list.appendChild(barLi);
+
+  for (const [sectorName, { sectorIdx, words }] of Object.entries(groups)) {
+    const pct = Math.round((words.length / totalSelected) * 100);
     const header = document.createElement("li");
     header.className = "group-header";
-    header.textContent = sectorName;
+    header.textContent = `${sectorName} (${pct}%)`;
     list.appendChild(header);
 
     for (const w of words) {

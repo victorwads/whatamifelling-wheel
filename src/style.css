@@ -265,6 +265,24 @@ html, body {
   font-size: 0.92rem;
 }
 
+/* Percentage distribution bar */
+.percentage-bar-wrapper {
+  padding: 4px 8px 0 !important;
+}
+
+.percentage-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.percentage-bar > div {
+  min-width: 2px;
+  transition: width 0.3s ease;
+}
+
 #selected-list li {
   padding: 3px 8px;
   border-radius: 4px;

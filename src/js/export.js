@@ -33,7 +33,7 @@ export async function generatePNG(wheel, lang, ui, groups) {
   let listLines = [];
   if (groups) {
     listLines.push('');
-    for (const [sectorName, words] of Object.entries(groups)) {
+    for (const [sectorName, { words }] of Object.entries(groups)) {
       listLines.push(`▸ ${sectorName}`);
       listLines.push(`  ${words.join(', ')}`);
     }
@@ -112,7 +112,7 @@ export async function generatePNG(wheel, lang, ui, groups) {
  * Actually: we generate a full HTML string that can be opened or converted.
  */
 export function generatePDFHtml(wheel, lang, ui, groups) {
-  const dataUrl = wheel.exportDataURL();
+  const svgContent = wheel.exportSVG();
   const { full: dateTimeStr } = formatDateTime(lang, ui);
 
   let listingHtml = "";
@@ -121,7 +121,7 @@ export function generatePDFHtml(wheel, lang, ui, groups) {
     listingHtml += '<div class="listing-page">';
     listingHtml += `<h1>${ui.pdfListTitle}</h1>`;
     listingHtml += `<p class="date">${ui.exportDateLabel}: ${dateTimeStr}</p>`;
-    for (const [sectorName, words] of Object.entries(groups)) {
+    for (const [sectorName, { words }] of Object.entries(groups)) {
       listingHtml += `<h2>${sectorName}</h2><ul>`;
       for (const w of words) listingHtml += `<li>${w}</li>`;
       listingHtml += '</ul>';
@@ -142,7 +142,7 @@ export function generatePDFHtml(wheel, lang, ui, groups) {
   .wheel-page h1 { font-size: 2rem; margin: 0 0 4px; color: #333; }
   .wheel-page .date { font-size: 0.95rem; color: #777; margin: 0 0 4px; }
   .wheel-page .desc { font-size: 0.85rem; color: #999; margin: 0 0 20px; max-width: 600px; text-align: center; }
-  .wheel-page img { max-width: 90vw; max-height: 72vh; }
+  .wheel-page svg { max-width: 90vw; max-height: 72vh; }
   .listing-page { padding: 40px 60px; }
   .listing-page h1 { font-size: 1.6rem; border-bottom: 2px solid #ddd; padding-bottom: 8px; margin-bottom: 4px; }
   .listing-page .date { font-size: 0.9rem; color: #777; margin-bottom: 16px; }
@@ -155,7 +155,7 @@ export function generatePDFHtml(wheel, lang, ui, groups) {
     <h1>${ui.appTitle}</h1>
     <p class="date">${dateTimeStr}</p>
     <p class="desc">${ui.appDescription}</p>
-    <img src="${dataUrl}" />
+    ${svgContent}
   </div>
   ${listingHtml}
 </body>
@@ -175,7 +175,7 @@ export function generatePDFHtml(wheel, lang, ui, groups) {
 export function formatAsMarkdownList(groups) {
   if (!groups) return '';
   const parts = [];
-  for (const [sectorName, words] of Object.entries(groups)) {
+  for (const [sectorName, { words }] of Object.entries(groups)) {
     parts.push(`*${sectorName}*`);
     for (const w of words) {
       parts.push(`- ${w}`);

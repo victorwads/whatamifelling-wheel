@@ -274,8 +274,8 @@ export class EmotionWheel {
       const sector = this.sectors[s];
       if (!sector) continue;
       const word = sector.rings[ri][wi];
-      if (!groups[sector.name]) groups[sector.name] = [];
-      groups[sector.name].push(word);
+      if (!groups[sector.name]) groups[sector.name] = { sectorIdx: s, words: [] };
+      groups[sector.name].words.push(word);
     }
     return groups;
   }
@@ -318,5 +318,152 @@ export class EmotionWheel {
     this.vpTy = origTy;
 
     return url;
+  }
+
+  /**
+   * Export the wheel as an SVG string — fully vectorized.
+   * Replicates the canvas drawing as SVG paths and text elements.
+   */
+  exportSVG() {
+    const ws = this.worldSize;
+    const cx = this.cx;
+    const cy = this.cy;
+    const parts = [];
+
+    parts.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ws} ${ws}" width="${ws}" height="${ws}">`);
+    parts.push(`<style>text { font-family: sans-serif; }</style>`);
+
+    // Helper: describe an arc slice path (annular sector)
+    const arcPath = (aStart, aEnd, rIn, rOut) => {
+      const x1 = cx + rOut * Math.cos(aStart);
+      const y1 = cy + rOut * Math.sin(aStart);
+      const x2 = cx + rOut * Math.cos(aEnd);
+      const y2 = cy + rOut * Math.sin(aEnd);
+      const x3 = cx + rIn * Math.cos(aEnd);
+      const y3 = cy + rIn * Math.sin(aEnd);
+      const x4 = cx + rIn * Math.cos(aStart);
+      const y4 = cy + rIn * Math.sin(aStart);
+      const largeArc = (aEnd - aStart) > Math.PI ? 1 : 0;
+      return [
+        `M ${x1} ${y1}`,
+        `A ${rOut} ${rOut} 0 ${largeArc} 1 ${x2} ${y2}`,
+        `L ${x3} ${y3}`,
+        `A ${rIn} ${rIn} 0 ${largeArc} 0 ${x4} ${y4}`,
+        `Z`
+      ].join(' ');
+    };
+
+    // 1. All ring slices (filled)
+    for (let s = 0; s < this.sectors.length; s++) {
+      const sector = this.sectors[s];
+      const sectorStart = s * this.sectorAngle;
+      for (let ri = 0; ri < CONFIG.NUM_RINGS; ri++) {
+        const words = sector.rings[ri];
+        const m = words.length;
+        const rIn = this.innerR + ri * this.ringWidth + CONFIG.RING_GAP;
+        const rOut = this.innerR + (ri + 1) * this.ringWidth;
+        const color = ColorHelper.getRingColor(sector.baseColor, ri);
+        for (let wi = 0; wi < m; wi++) {
+          const aStart = sectorStart + (wi / m) * this.sectorAngle;
+          const aEnd = sectorStart + ((wi + 1) / m) * this.sectorAngle;
+          const d = arcPath(aStart, aEnd, rIn, rOut);
+          parts.push(`<path d="${d}" fill="${ColorHelper.rgb(color)}" stroke="rgba(255,255,255,0.6)" stroke-width="${CONFIG.DIVIDER_WIDTH}"/>`);
+        }
+      }
+    }
+
+    // 2. Highlights for selected items
+    for (const key of this.selected) {
+      const [s, ri, wi] = key.split("-").map(Number);
+      const sector = this.sectors[s];
+      if (!sector) continue;
+      const sectorStart = s * this.sectorAngle;
+      const m = sector.rings[ri].length;
+      const rIn = this.innerR + ri * this.ringWidth + CONFIG.RING_GAP;
+      const rOut = this.innerR + (ri + 1) * this.ringWidth;
+      const aStart = sectorStart + (wi / m) * this.sectorAngle;
+      const aEnd = sectorStart + ((wi + 1) / m) * this.sectorAngle;
+      const d = arcPath(aStart, aEnd, rIn, rOut);
+      parts.push(`<path d="${d}" fill="none" stroke="#000" stroke-width="${CONFIG.HIGHLIGHT_WIDTH}"/>`);
+    }
+
+    // 3. Text labels
+    for (let s = 0; s < this.sectors.length; s++) {
+      const sector = this.sectors[s];
+      const sectorStart = s * this.sectorAngle;
+      for (let ri = 0; ri < CONFIG.NUM_RINGS; ri++) {
+        const words = sector.rings[ri];
+        const m = words.length;
+        const rIn = this.innerR + ri * this.ringWidth;
+        const rOut = this.innerR + (ri + 1) * this.ringWidth;
+        const rMid = (rIn + rOut) / 2;
+        const fontSize = Math.max(5, Math.min(this.ringWidth * 0.28, 13));
+
+        for (let wi = 0; wi < m; wi++) {
+          const aStart = sectorStart + (wi / m) * this.sectorAngle;
+          const aEnd = sectorStart + ((wi + 1) / m) * this.sectorAngle;
+          const angle = (aStart + aEnd) / 2;
+
+          // Position along the radius
+          const tx = cx + rMid * Math.cos(angle);
+          const ty = cy + rMid * Math.sin(angle);
+
+          // Flip text on the left half so it reads left-to-right
+          const normAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+          const flip = normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2;
+          const rotDeg = flip
+            ? (angle * 180 / Math.PI) + 180
+            : (angle * 180 / Math.PI);
+
+          const fillColor = ColorHelper.getLabelColor(sector.baseColor, ri);
+          parts.push(`<text x="${tx}" y="${ty}" font-size="${fontSize * 0.55}" fill="${fillColor}" text-anchor="middle" dominant-baseline="central" transform="rotate(${rotDeg}, ${tx}, ${ty})">${this.escSvg(words[wi])}</text>`);
+        }
+      }
+    }
+
+    // 4. Center disk — colored pie slices
+    for (let s = 0; s < this.sectors.length; s++) {
+      const sector = this.sectors[s];
+      const aStart = s * this.sectorAngle;
+      const aEnd = (s + 1) * this.sectorAngle;
+      const color = ColorHelper.lighten(sector.baseColor, 0.70);
+      const x1 = cx + this.innerR * Math.cos(aStart);
+      const y1 = cy + this.innerR * Math.sin(aStart);
+      const x2 = cx + this.innerR * Math.cos(aEnd);
+      const y2 = cy + this.innerR * Math.sin(aEnd);
+      const largeArc = (aEnd - aStart) > Math.PI ? 1 : 0;
+      const d = `M ${cx} ${cy} L ${x1} ${y1} A ${this.innerR} ${this.innerR} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+      parts.push(`<path d="${d}" fill="${ColorHelper.rgb(color)}" stroke="rgba(255,255,255,0.8)" stroke-width="1"/>`);
+    }
+
+    // Center disk border
+    parts.push(`<circle cx="${cx}" cy="${cy}" r="${this.innerR}" fill="none" stroke="#ccc" stroke-width="1"/>`);
+
+    // 5. Sector labels (center)
+    for (let s = 0; s < this.sectors.length; s++) {
+      const sector = this.sectors[s];
+      const aMid = s * this.sectorAngle + this.sectorAngle / 2;
+      const r = this.innerR * 0.55;
+      const tx = cx + r * Math.cos(aMid);
+      const ty = cy + r * Math.sin(aMid);
+
+      const normAngle = ((aMid % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      const flip = normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2;
+      // Sector labels are rotated -90° from radial direction
+      const rotDeg = flip
+        ? (aMid * 180 / Math.PI) + 180 - 90
+        : (aMid * 180 / Math.PI) - 90;
+
+      const fontSize = Math.max(7, this.innerR * 0.13);
+      parts.push(`<text x="${tx}" y="${ty}" font-size="${fontSize}" font-weight="600" fill="#333" text-anchor="middle" dominant-baseline="central" transform="rotate(${rotDeg}, ${tx}, ${ty})">${this.escSvg(sector.name)}</text>`);
+    }
+
+    parts.push('</svg>');
+    return parts.join('\n');
+  }
+
+  /** Escape special characters for SVG text content */
+  escSvg(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 }
