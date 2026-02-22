@@ -1,6 +1,6 @@
 import { EmotionWheel } from './js/wheel.js';
 import { LANGUAGES } from './js/data.js';
-import { generatePNG, generatePDF, generatePDFHtml, formatAsMarkdownList, shareFile, downloadBlob, isMobile } from './js/export.js';
+import { generatePNG, generatePDF, generatePDFHtml, formatAsMarkdownList, shareFile, downloadBlob, isMobile, encodeSelectionHash } from './js/export.js';
 import {
   setLanguageProperty, trackLanguageChange, trackEmotionClick,
   trackClearSelection, trackCopyEmotions, trackExportMenuOpen,
@@ -32,7 +32,30 @@ langSelect.value = currentLang;
 let langData = LANGUAGES[currentLang];
 setLanguageProperty(currentLang);
 
+function decodeSelectionFromHash(hash) {
+  if (!hash) return [];
+  hash = hash.replace(/-/g, '+').replace(/_/g, '/');
+  while (hash.length % 4) hash += '=';
+  const bin = atob(hash);
+  const arr = Array.from(bin, c => c.charCodeAt(0));
+  const keys = [];
+  for (let i = 0; i < arr.length; i += 3) {
+    keys.push(`${arr[i]}-${arr[i+1]}-${arr[i+2]}`);
+  }
+  return keys;
+}
+
+// Carrega seleção do hash da URL, se existir
+let initialSelected = null;
+if (location.hash.startsWith('#sel=')) {
+  initialSelected = new Set(decodeSelectionFromHash(location.hash.slice(5)));
+}
+
 const wheel = new EmotionWheel(canvas, langData.sectors);
+if (initialSelected) {
+  wheel.selected = initialSelected;
+  sessionStorage.setItem('emotion-wheel-selected', JSON.stringify(Array.from(initialSelected)));
+}
 
 // ===========================================================================
 //  VIEWPORT — re-render approach for crisp zoom (like SVG).
@@ -259,6 +282,13 @@ function handleTap(x, y) {
     wheel.toggleSelection(hit);
     wheel.draw();
     updateSidebar();
+    // Atualiza hash da URL
+    const hash = encodeSelectionHash(wheel.selected);
+    if (hash) {
+      history.replaceState(null, '', location.pathname + location.search + '#sel=' + hash);
+    } else {
+      history.replaceState(null, '', location.pathname + location.search);
+    }
 
     const sector = langData.sectors[hit.sectorIdx];
     const word = sector.rings[hit.ringIdx][hit.wordIdx];
@@ -368,6 +398,8 @@ document.getElementById("btn-clear").addEventListener("click", () => {
   wheel.clearSelection();
   wheel.draw();
   updateSidebar();
+  // Limpa hash da URL
+  history.replaceState(null, '', location.pathname + location.search);
 });
 
 // Copy as markdown list (clipboard only, no share API)

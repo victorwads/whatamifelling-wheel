@@ -7,6 +7,35 @@
 // HELPERS
 // ---------------------------------------------------------------------------
 
+/**
+ * Encode a selection Set into a compact base64 url-safe string.
+ */
+export function encodeSelectionHash(selectedSet) {
+  if (!selectedSet || selectedSet.size === 0) return '';
+  const arr = Array.from(selectedSet).map(k => k.split('-').map(Number)).flat();
+  const u8 = new Uint8Array(arr);
+  return btoa(String.fromCharCode(...u8)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/**
+ * Build the full shareable URL with the selection hash.
+ */
+export function buildShareURL(selectedSet) {
+  let url = location.origin + location.pathname;
+  const hash = encodeSelectionHash(selectedSet);
+  if (hash) url += '#sel=' + hash;
+  return url;
+}
+
+/**
+ * Format a date/time stamp suitable for filenames: YYYY-MM-DD_HH-MM
+ */
+function formatFileDateTime() {
+  const now = new Date();
+  const p = n => n.toString().padStart(2, '0');
+  return `${now.getFullYear()}-${p(now.getMonth()+1)}-${p(now.getDate())}_${p(now.getHours())}-${p(now.getMinutes())}`;
+}
+
 function formatDateTime(lang, ui) {
   const now = new Date();
   const dateStr = now.toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' });
@@ -107,7 +136,7 @@ export async function generatePNG(wheel, lang, ui, groups) {
       H += lines.length * 24 + 14;
     }
   }
-  H += pad;
+  H += pad + 30; // extra room for URL footer
 
   // --- Export wheel at exact resolution needed ---
   const neededPx = wheelSize * dpr;
@@ -118,6 +147,7 @@ export async function generatePNG(wheel, lang, ui, groups) {
   await new Promise(r => { wheelImg.onload = r; });
 
   const { full: dateTimeStr } = formatDateTime(lang, ui);
+  const shareUrl = buildShareURL(wheel.selected);
 
   // --- Create canvas ---
   const offscreen = document.createElement('canvas');
@@ -191,10 +221,16 @@ export async function generatePNG(wheel, lang, ui, groups) {
     }
   }
 
+  // URL link no rodapé
+  c.fillStyle = '#0066cc';
+  c.font = '16px "Segoe UI", system-ui, sans-serif';
+  c.textAlign = 'center';
+  c.fillText(shareUrl, W / 2, H - 20);
+
   const dataUrl = offscreen.toDataURL('image/png');
   const blob = await (await fetch(dataUrl)).blob();
-  const filename = `emotion-wheel-${lang}.png`;
-  return { blob, filename };
+  const filename = `emotion-wheel-${lang}_${formatFileDateTime()}.png`;
+  return { blob, filename, url: shareUrl };
 }
 
 // ---------------------------------------------------------------------------
@@ -229,6 +265,7 @@ export async function generatePDF(wheel, lang, ui, groups) {
   const wheelDataUrl = wheel.exportDataURL(4);
   const { full: dateTimeStr } = formatDateTime(lang, ui);
   const pctData = computePercentages(groups, wheel.sectors);
+  const shareUrl = buildShareURL(wheel.selected);
 
   const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = 210;
@@ -313,9 +350,16 @@ export async function generatePDF(wheel, lang, ui, groups) {
     }
   }
 
+  // Adiciona a URL interativa no rodapé do PDF
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(0, 102, 204);
+  if (y > 270) { doc.addPage(); }
+  doc.textWithLink(shareUrl, margin, 290, { url: shareUrl });
+
   const blob = doc.output('blob');
-  const filename = `emotion-wheel-${lang}.pdf`;
-  return { blob, filename };
+  const filename = `emotion-wheel-${lang}_${formatFileDateTime()}.pdf`;
+  return { blob, filename, url: shareUrl };
 }
 
 // ---------------------------------------------------------------------------
