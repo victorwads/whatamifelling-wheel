@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Roda das Emoções</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -14,12 +14,18 @@
     <!-- Left: Canvas area -->
     <div id="canvas-container">
       <canvas id="wheel"></canvas>
+      <!-- Zoom controls -->
+      <div id="zoom-controls">
+        <button id="btn-zoom-in" title="Zoom in">＋</button>
+        <button id="btn-zoom-reset" title="Reset zoom">⟲</button>
+        <button id="btn-zoom-out" title="Zoom out">－</button>
+      </div>
     </div>
 
-    <!-- Right: Sidebar -->
+    <!-- Right / Bottom: Sidebar -->
     <aside id="sidebar">
       <div class="lang-selector">
-        <label for="lang-select">🌐 Language:</label>
+        <label for="lang-select">🌐</label>
         <select id="lang-select">
           <option value="pt">Português</option>
           <option value="en">English</option>

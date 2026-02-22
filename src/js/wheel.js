@@ -113,11 +113,29 @@ export class EmotionWheel {
       }
     }
 
-    // 4. Center disk
+    // 4. Center disk — colored pie slices per sector
+    for (let s = 0; s < this.sectors.length; s++) {
+      const sector = this.sectors[s];
+      const aStart = s * this.sectorAngle;
+      const aEnd = (s + 1) * this.sectorAngle;
+      const color = ColorHelper.lighten(sector.baseColor, 0.70);
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.cx, this.cy);
+      this.ctx.arc(this.cx, this.cy, this.innerR, aStart, aEnd, false);
+      this.ctx.closePath();
+      this.ctx.fillStyle = ColorHelper.rgb(color);
+      this.ctx.fill();
+
+      // Divider line
+      this.ctx.strokeStyle = "rgba(255,255,255,0.8)";
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
+    }
+
+    // Center disk border
     this.ctx.beginPath();
     this.ctx.arc(this.cx, this.cy, this.innerR, 0, 2 * Math.PI);
-    this.ctx.fillStyle = "#fff";
-    this.ctx.fill();
     this.ctx.strokeStyle = "#ccc";
     this.ctx.lineWidth = 1;
     this.ctx.stroke();
@@ -178,8 +196,8 @@ export class EmotionWheel {
     const normAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     const flip = normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2;
 
-    const fontSize = Math.max(9, this.innerR * 0.22);
-    this.ctx.font = `bold ${fontSize}px sans-serif`;
+    const fontSize = Math.max(7, this.innerR * 0.13);
+    this.ctx.font = `600 ${fontSize}px sans-serif`;
     this.ctx.textAlign = "center";
     this.ctx.textBaseline = "middle";
     this.ctx.fillStyle = "#333";
