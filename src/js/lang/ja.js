@@ -5,6 +5,8 @@ export default {
     sidebarTitle: "選択された感情",
     emptySelection: "感情が選択されていません",
     btnClear: "クリア",
+    btnClearAll: "すべてクリア",
+    btnShareFeelings: "感情を共有",
     btnCopy: "コピー",
     btnCopyText: "テキストをコピー",
     btnCopyLink: "リンクをコピー",

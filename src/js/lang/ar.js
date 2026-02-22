@@ -5,6 +5,8 @@ export default {
     sidebarTitle: "المشاعر المُختارة",
     emptySelection: "لم يتم اختيار مشاعر",
     btnClear: "مسح",
+    btnClearAll: "مسح الكل",
+    btnShareFeelings: "مشاركة المشاعر",
     btnCopy: "نسخ",
     btnCopyText: "نسخ النص",
     btnCopyLink: "نسخ الرابط",

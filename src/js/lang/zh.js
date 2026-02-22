@@ -5,6 +5,8 @@ export default {
     sidebarTitle: "已选情绪",
     emptySelection: "未选择任何情绪",
     btnClear: "清除",
+    btnClearAll: "全部清除",
+    btnShareFeelings: "分享感受",
     btnCopy: "复制",
     btnCopyText: "复制文本",
     btnCopyLink: "复制链接",

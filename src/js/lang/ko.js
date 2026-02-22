@@ -5,6 +5,8 @@ export default {
     sidebarTitle: "선택된 감정",
     emptySelection: "선택된 감정이 없습니다",
     btnClear: "지우기",
+    btnClearAll: "모두 지우기",
+    btnShareFeelings: "감정 공유",
     btnCopy: "복사",
     btnCopyText: "텍스트 복사",
     btnCopyLink: "링크 복사",

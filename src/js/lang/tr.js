@@ -5,6 +5,8 @@ export default {
     sidebarTitle: "Seçilen Duygular",
     emptySelection: "Henüz duygu seçilmedi",
     btnClear: "Temizle",
+    btnClearAll: "Tümünü Temizle",
+    btnShareFeelings: "Duyguları Paylaş",
     btnCopy: "Kopyala",
     btnCopyText: "Metni kopyala",
     btnCopyLink: "Bağlantıyı kopyala",

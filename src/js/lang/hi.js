@@ -5,6 +5,8 @@ export default {
     sidebarTitle: "चयनित भावनाएँ",
     emptySelection: "कोई भावना चयनित नहीं",
     btnClear: "मिटाएँ",
+    btnClearAll: "सभी मिटाएँ",
+    btnShareFeelings: "भावनाएँ साझा करें",
     btnCopy: "कॉपी",
     btnCopyText: "टेक्स्ट कॉपी करें",
     btnCopyLink: "लिंक कॉपी करें",

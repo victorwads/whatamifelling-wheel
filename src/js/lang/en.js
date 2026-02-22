@@ -5,6 +5,8 @@ export default {
     sidebarTitle: "Selected Emotions",
     emptySelection: "No emotion selected",
     btnClear: "Clear",
+    btnClearAll: "Clear All",
+    btnShareFeelings: "Share Feelings",
     btnCopy: "Copy",
     btnCopyText: "Copy text",
     btnCopyLink: "Copy link",

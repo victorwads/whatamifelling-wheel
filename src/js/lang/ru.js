@@ -5,6 +5,8 @@ export default {
     sidebarTitle: "Выбранные эмоции",
     emptySelection: "Эмоции не выбраны",
     btnClear: "Очистить",
+    btnClearAll: "Очистить всё",
+    btnShareFeelings: "Поделиться чувствами",
     btnCopy: "Копировать",
     btnCopyText: "Копировать текст",
     btnCopyLink: "Копировать ссылку",

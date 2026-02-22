@@ -27,7 +27,9 @@ function getBrowserLanguage() {
 
 // Apply saved theme on load
 const savedTheme = localStorage.getItem('emotion-wheel-theme');
-if (savedTheme === 'dark') {
+if (savedTheme === 'light') {
+  document.body.classList.remove('dark');
+} else {
   document.body.classList.add('dark');
 }
 
@@ -386,6 +388,8 @@ function updateLocalization() {
   document.getElementById("btn-copy-link").innerHTML = '<i class="fa-solid fa-link"></i> ' + ui.btnCopyLink;
   document.getElementById("btn-clear").title = ui.btnClear;
   document.getElementById("btn-export").title = ui.btnShare;
+  document.getElementById("btn-clear-label").textContent = ui.btnClearAll;
+  document.getElementById("btn-export-label").textContent = ui.btnShareFeelings;
   document.title = ui.appTitle;
 }
 
@@ -446,7 +450,7 @@ document.getElementById("btn-theme").addEventListener("click", () => {
 });
 
 // Sync icon on load after toggling
-if (savedTheme === 'dark') {
+if (savedTheme !== 'light') {
   document.querySelector('#btn-theme i').className = 'fa-solid fa-sun';
 }
 
