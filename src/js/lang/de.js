@@ -10,7 +10,11 @@ export default {
     btnExportPdf: "📄 PDF exportieren",
     toastCopied: "Liste kopiert!",
     pdfTitle: "Gefühlsrad – PDF",
-    pdfListTitle: "Ausgewählte Emotionen"
+    pdfListTitle: "Ausgewählte Emotionen",
+    appTitle: "Gefühlsrad",
+    appDescription: "Wählen Sie die Emotionen aus, die Sie fühlen, indem Sie darauf klicken. Exportieren oder teilen Sie, um festzuhalten, wie Sie sich fühlen.",
+    exportDateLabel: "Datum und Uhrzeit",
+    btnShare: "🔗 Teilen"
   },
   sectors: [
     {

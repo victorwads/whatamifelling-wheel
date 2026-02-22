@@ -10,7 +10,11 @@ export default {
     btnExportPdf: "📄 Export PDF",
     toastCopied: "List copied!",
     pdfTitle: "Emotion Wheel – PDF",
-    pdfListTitle: "Selected Emotions"
+    pdfListTitle: "Selected Emotions",
+    appTitle: "Emotion Wheel",
+    appDescription: "Select the emotions you are feeling by clicking on them. Export or share to record how you feel.",
+    exportDateLabel: "Date and time",
+    btnShare: "🔗 Share"
   },
   sectors: [
     {

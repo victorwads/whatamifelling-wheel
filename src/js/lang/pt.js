@@ -10,7 +10,11 @@ export default {
     btnExportPdf: "📄 Exportar PDF",
     toastCopied: "Lista copiada!",
     pdfTitle: "Roda das Emoções – PDF",
-    pdfListTitle: "Emoções Selecionadas"
+    pdfListTitle: "Emoções Selecionadas",
+    appTitle: "Roda das Emoções",
+    appDescription: "Selecione as emoções que você está sentindo clicando nelas. Exporte ou compartilhe para registrar como você se sente.",
+    exportDateLabel: "Data e hora",
+    btnShare: "🔗 Compartilhar"
   },
   sectors: [
     {

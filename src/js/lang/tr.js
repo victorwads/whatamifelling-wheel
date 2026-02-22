@@ -10,7 +10,11 @@ export default {
     btnExportPdf: "📄 PDF İndir",
     toastCopied: "Liste kopyalandı!",
     pdfTitle: "Duygu Çarkı – PDF",
-    pdfListTitle: "Seçilen Duygular"
+    pdfListTitle: "Seçilen Duygular",
+    appTitle: "Duygu Çarkı",
+    appDescription: "Hissettiklerinizi üzerlerine tıklayarak seçin. Nasıl hissettiğinizi kaydetmek için dışa aktarın veya paylaşın.",
+    exportDateLabel: "Tarih ve saat",
+    btnShare: "🔗 Paylaş"
   },
   sectors: [
     {

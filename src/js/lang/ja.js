@@ -10,7 +10,11 @@ export default {
     btnExportPdf: "📄 PDF出力",
     toastCopied: "リストをコピーしました！",
     pdfTitle: "感情の輪 – PDF",
-    pdfListTitle: "選択された感情"
+    pdfListTitle: "選択された感情",
+    appTitle: "感情の輪",
+    appDescription: "感じている感情をクリックして選択してください。エクスポートまたは共有して、あなたの気持ちを記録しましょう。",
+    exportDateLabel: "日時",
+    btnShare: "🔗 共有"
   },
   sectors: [
     {

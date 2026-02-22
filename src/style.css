@@ -84,6 +84,20 @@ html, body {
   overflow-y: auto;
 }
 
+#sidebar h1 {
+  font-size: 1.15rem;
+  margin: 0 0 4px;
+  color: #333;
+  line-height: 1.3;
+}
+
+.app-description {
+  font-size: 0.82rem;
+  color: #888;
+  margin: 0 0 14px;
+  line-height: 1.4;
+}
+
 #sidebar h2 {
   font-size: 1.05rem;
   margin-bottom: 12px;
@@ -224,6 +238,16 @@ hr {
 
   .lang-selector {
     margin-bottom: 10px;
+  }
+
+  #sidebar h1 {
+    font-size: 1rem;
+    margin: 0 0 2px;
+  }
+
+  .app-description {
+    font-size: 0.75rem;
+    margin: 0 0 8px;
   }
 
   #sidebar h2 {

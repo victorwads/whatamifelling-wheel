@@ -10,7 +10,11 @@ export default {
     btnExportPdf: "📄 Exporter PDF",
     toastCopied: "Liste copiée !",
     pdfTitle: "Roue des Émotions – PDF",
-    pdfListTitle: "Émotions Sélectionnées"
+    pdfListTitle: "Émotions Sélectionnées",
+    appTitle: "Roue des Émotions",
+    appDescription: "Sélectionnez les émotions que vous ressentez en cliquant dessus. Exportez ou partagez pour enregistrer ce que vous ressentez.",
+    exportDateLabel: "Date et heure",
+    btnShare: "🔗 Partager"
   },
   sectors: [
     {

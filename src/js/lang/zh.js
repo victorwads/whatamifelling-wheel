@@ -10,7 +10,11 @@ export default {
     btnExportPdf: "📄 导出PDF",
     toastCopied: "列表已复制！",
     pdfTitle: "情绪之轮 – PDF",
-    pdfListTitle: "已选情绪"
+    pdfListTitle: "已选情绪",
+    appTitle: "情绪之轮",
+    appDescription: "点击选择您正在感受的情绪。导出或分享以记录您的感受。",
+    exportDateLabel: "日期和时间",
+    btnShare: "🔗 分享"
   },
   sectors: [
     {

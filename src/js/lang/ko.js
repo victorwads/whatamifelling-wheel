@@ -10,7 +10,11 @@ export default {
     btnExportPdf: "📄 PDF 내보내기",
     toastCopied: "목록이 복사되었습니다!",
     pdfTitle: "감정의 바퀴 – PDF",
-    pdfListTitle: "선택된 감정"
+    pdfListTitle: "선택된 감정",
+    appTitle: "감정의 바퀴",
+    appDescription: "느끼고 있는 감정을 클릭하여 선택하세요. 내보내기 또는 공유하여 기분을 기록하세요.",
+    exportDateLabel: "날짜 및 시간",
+    btnShare: "🔗 공유"
   },
   sectors: [
     {
