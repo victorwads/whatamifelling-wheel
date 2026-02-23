@@ -24,12 +24,23 @@ const analytics = getAnalytics(app);
 
 const DEBUG = location.search.includes('debug=true');
 
+// Captura o domínio atual
+const currentDomain = location.hostname;
+const currentOrigin = location.origin;
+
 function send(eventName, params = {}) {
+  // Adiciona o domínio em todos os eventos para facilitar análise
+  const enrichedParams = {
+    ...params,
+    domain: currentDomain,
+    origin: currentOrigin
+  };
+  
   if (DEBUG) {
-    console.log(`[Analytics] ${eventName}`, params);
+    console.log(`[Analytics] ${eventName}`, enrichedParams);
   }
   try {
-    logEvent(analytics, eventName, params);
+    logEvent(analytics, eventName, enrichedParams);
   } catch (err) {
     console.error(`[Analytics] Failed to send "${eventName}":`, err);
   }
@@ -43,10 +54,27 @@ function send(eventName, params = {}) {
  */
 export function setLanguageProperty(language) {
   try {
-    setUserProperties(analytics, { preferred_language: language });
+    setUserProperties(analytics, { 
+      preferred_language: language,
+      domain: currentDomain,
+      origin: currentOrigin
+    });
   } catch (err) {
     console.error('[Analytics] Failed to set user property:', err);
   }
+}
+
+/**
+ * Track initial page view with domain information.
+ * Call this when the app loads to ensure we capture the domain being used.
+ * Firebase Console: Events > app_load, filter by `domain` or `origin`.
+ */
+export function trackAppLoad(hasSelection) {
+  send('app_load', {
+    page_path: location.pathname,
+    page_search: location.search,
+    has_selection: hasSelection
+  });
 }
 
 /**

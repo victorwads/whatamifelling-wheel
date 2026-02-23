@@ -4,7 +4,7 @@ import { generatePNG, generatePDF, generatePDFHtml, formatAsMarkdownList, shareF
 import {
   setLanguageProperty, trackLanguageChange, trackEmotionClick,
   trackClearSelection, trackCopyEmotions, trackExportMenuOpen,
-  trackExportPNG, trackExportPDF, trackSidebarToggle
+  trackExportPNG, trackExportPDF, trackSidebarToggle, trackAppLoad
 } from './js/analytics.js';
 
 // English data for standardized analytics labels
@@ -65,6 +65,9 @@ if (initialSelected) {
   wheel.selected = initialSelected;
   sessionStorage.setItem('emotion-wheel-selected', JSON.stringify(Array.from(initialSelected)));
 }
+
+// Track app load with domain information
+trackAppLoad(initialSelected && initialSelected.size > 0);
 
 // ===========================================================================
 //  VIEWPORT — re-render approach for crisp zoom (like SVG).
