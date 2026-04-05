@@ -20,6 +20,7 @@ export default {
     pdfListTitle: "المشاعر المُختارة",
     appTitle: "عجلة المشاعر",
     appDescription: "اختر المشاعر التي تشعر بها بالنقر عليها. قم بالتصدير أو المشاركة لتسجيل ما تشعر به.",
+    uppercaseToggle: "اعرض كل شيء بأحرف كبيرة",
     exportDateLabel: "التاريخ والوقت",
     btnShare: "🔗 مشاركة",
     pdfInteractiveLink: "انقر هنا لفتح هذا التقرير في الوضع التفاعلي"

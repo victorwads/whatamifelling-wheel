@@ -13,6 +13,23 @@ const enSectors = LANGUAGES.en.sectors;
 const canvas = document.getElementById("wheel");
 const container = document.getElementById("canvas-container");
 const langSelect = document.getElementById("lang-select");
+const uppercaseToggle = document.getElementById("uppercase-toggle");
+
+const uppercaseLabelFallbacks = {
+  pt: "Mostrar tudo em maiúsculas",
+  en: "Show everything in uppercase",
+  es: "Mostrar todo en mayúsculas",
+  fr: "Tout afficher en majuscules",
+  de: "Alles in Großbuchstaben anzeigen",
+  it: "Mostra tutto in maiuscolo",
+  ru: "Показывать всё заглавными буквами",
+  ja: "すべて大文字で表示",
+  ko: "모든 글자를 대문자로 표시",
+  zh: "全部显示为大写",
+  ar: "اعرض كل شيء بأحرف كبيرة",
+  hi: "सब कुछ बड़े अक्षरों में दिखाएँ",
+  tr: "Her şeyi büyük harflerle göster"
+};
 
 // Detect browser language
 function getBrowserLanguage() {
@@ -39,6 +56,7 @@ if (!currentLang || !LANGUAGES[currentLang]) currentLang = getBrowserLanguage();
 langSelect.value = currentLang;
 let langData = LANGUAGES[currentLang];
 setLanguageProperty(currentLang);
+let uppercaseEnabled = localStorage.getItem('emotion-wheel-uppercase') === 'true';
 
 function decodeSelectionFromHash(hash) {
   if (!hash) return [];
@@ -61,6 +79,7 @@ if (pathParts.length > 0 && pathParts[pathParts.length - 1].match(/^[A-Za-z0-9_-
 }
 
 const wheel = new EmotionWheel(canvas, langData.sectors);
+applyDisplayPreferences();
 if (initialSelected) {
   wheel.selected = initialSelected;
   sessionStorage.setItem('emotion-wheel-selected', JSON.stringify(Array.from(initialSelected)));
@@ -445,6 +464,7 @@ langSelect.addEventListener("change", (e) => {
   
   trackLanguageChange(currentLang);
   setLanguageProperty(currentLang);
+  wheel.setTextTransform({ allCaps: uppercaseEnabled, locale: currentLang });
   
   wheel.setSectors(langData.sectors);
   
@@ -465,9 +485,10 @@ langSelect.addEventListener("change", (e) => {
 // ---------------------------------------------------------------------------
 
 function updateLocalization() {
-  const ui = langData.ui;
+  const ui = getDisplayUi();
   document.getElementById("ui-app-title").textContent = ui.appTitle;
   document.getElementById("ui-app-description").textContent = ui.appDescription;
+  document.getElementById("ui-uppercase-label").textContent = ui.uppercaseToggle || formatDisplayText(getUppercaseToggleLabel());
   document.getElementById("ui-sidebar-title").textContent = ui.sidebarTitle;
   document.getElementById("btn-export-png").innerHTML = '<i class="fa-solid fa-image"></i> ' + ui.btnExportPng;
   document.getElementById("btn-export-pdf").innerHTML = '<i class="fa-solid fa-file-pdf"></i> ' + ui.btnExportPdf;
@@ -486,9 +507,9 @@ function updateSidebar() {
   const list = document.getElementById("selected-list");
   list.innerHTML = "";
 
-  const groups = wheel.getSelectedGroups();
+  const groups = getDisplayGroups(wheel.getSelectedGroups());
   if (!groups) {
-    list.innerHTML = `<li class="empty">${langData.ui.emptySelection}</li>`;
+    list.innerHTML = `<li class="empty">${formatDisplayText(langData.ui.emptySelection)}</li>`;
     return;
   }
 
@@ -553,12 +574,22 @@ document.getElementById("btn-clear").addEventListener("click", () => {
   history.pushState({ selection: null }, '', location.origin + '/');
 });
 
+uppercaseToggle.addEventListener("change", (e) => {
+  uppercaseEnabled = e.target.checked;
+  localStorage.setItem('emotion-wheel-uppercase', String(uppercaseEnabled));
+  applyDisplayPreferences();
+  wheel.draw();
+  updateLocalization();
+  updateSidebar();
+});
+
 // Copy as markdown list (clipboard only, no share API)
 document.getElementById("btn-copy-text").addEventListener("click", async () => {
-  const groups = wheel.getSelectedGroups();
+  const groups = getDisplayGroups(wheel.getSelectedGroups());
   if (!groups) return;
+  const ui = getDisplayUi();
   const shareUrl = buildShareURL(wheel.selected);
-  const text = formatAsMarkdownList(groups) + '\n\n' + (langData.ui.shareIntro || 'Olha meus sentimentos') + ':\n' + shareUrl;
+  const text = formatAsMarkdownList(groups) + '\n\n' + (ui.shareIntro || formatDisplayText('Olha meus sentimentos')) + ':\n' + shareUrl;
   trackCopyEmotions(currentLang);
   if (isMobile() && navigator.share) {
     try {
@@ -588,7 +619,8 @@ document.getElementById("btn-copy-text").addEventListener("click", async () => {
 
 document.getElementById("btn-copy-link").addEventListener("click", async () => {
   const link = buildShareURL(wheel.selected);
-  const msg = `${langData.ui.shareIntro || 'Olha meus sentimentos'}: ${link}`;
+  const ui = getDisplayUi();
+  const msg = `${ui.shareIntro || formatDisplayText('Olha meus sentimentos')}: ${link}`;
   if (isMobile() && navigator.share) {
     try {
       await navigator.share({ text: msg });
@@ -639,8 +671,8 @@ document.getElementById("btn-export-png").addEventListener("click", async () => 
   exportMenu.classList.add("hidden");
   trackExportPNG(currentLang);
 
-  const ui = langData.ui;
-  const groups = wheel.getSelectedGroups();
+  const ui = getDisplayUi();
+  const groups = getDisplayGroups(wheel.getSelectedGroups());
   const { blob, filename, url } = await generatePNG(wheel, currentLang, ui, groups);
 
   if (isMobile()) {
@@ -658,8 +690,8 @@ document.getElementById("btn-export-pdf").addEventListener("click", async () => 
   exportMenu.classList.add("hidden");
   trackExportPDF(currentLang);
 
-  const ui = langData.ui;
-  const groups = wheel.getSelectedGroups();
+  const ui = getDisplayUi();
+  const groups = getDisplayGroups(wheel.getSelectedGroups());
 
   try {
     const { blob, filename, url } = await generatePDF(wheel, currentLang, ui, groups);
@@ -831,9 +863,46 @@ searchInput.addEventListener("input", (e) => {
 
 function showToast(msg) {
   const t = document.getElementById("toast");
-  t.textContent = msg;
+  t.textContent = formatDisplayText(msg);
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+function formatDisplayText(text) {
+  if (typeof text !== 'string' || !uppercaseEnabled) return text;
+  return text.toLocaleUpperCase(currentLang);
+}
+
+function getDisplayUi() {
+  return Object.fromEntries(
+    Object.entries(langData.ui).map(([key, value]) => [
+      key,
+      typeof value === 'string' ? formatDisplayText(value) : value
+    ])
+  );
+}
+
+function getDisplayGroups(groups) {
+  if (!groups) return null;
+  return Object.fromEntries(
+    Object.entries(groups).map(([sectorName, group]) => [
+      formatDisplayText(sectorName),
+      {
+        sectorIdx: group.sectorIdx,
+        words: group.words.map(word => formatDisplayText(word))
+      }
+    ])
+  );
+}
+
+function getUppercaseToggleLabel() {
+  return langData.ui.uppercaseToggle || uppercaseLabelFallbacks[currentLang] || uppercaseLabelFallbacks.pt;
+}
+
+function applyDisplayPreferences() {
+  document.body.classList.toggle('all-caps', uppercaseEnabled);
+  uppercaseToggle.checked = uppercaseEnabled;
+  wheel.setTextTransform({ allCaps: uppercaseEnabled, locale: currentLang });
 }
 
 // ---------------------------------------------------------------------------

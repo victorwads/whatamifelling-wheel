@@ -20,6 +20,7 @@ export default {
     pdfListTitle: "Emociones Seleccionadas",
     appTitle: "Rueda de Emociones",
     appDescription: "Selecciona las emociones que estás sintiendo haciendo clic en ellas. Exporta o comparte para registrar cómo te sientes.",
+    uppercaseToggle: "Mostrar todo en mayúsculas",
     exportDateLabel: "Fecha y hora",
     btnShare: "🔗 Compartir",
     pdfInteractiveLink: "Haz clic aquí para abrir este informe en modo interactivo"

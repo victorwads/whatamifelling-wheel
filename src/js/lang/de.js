@@ -20,6 +20,7 @@ export default {
     pdfListTitle: "Ausgewählte Emotionen",
     appTitle: "Gefühlsrad",
     appDescription: "Wählen Sie die Emotionen aus, die Sie fühlen, indem Sie darauf klicken. Exportieren oder teilen Sie, um festzuhalten, wie Sie sich fühlen.",
+    uppercaseToggle: "Alles in Großbuchstaben anzeigen",
     exportDateLabel: "Datum und Uhrzeit",
     btnShare: "🔗 Teilen",
     pdfInteractiveLink: "Klicken Sie hier, um diesen Bericht im interaktiven Modus zu öffnen"

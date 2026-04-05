@@ -13,6 +13,8 @@ export class EmotionWheel {
     const saved = sessionStorage.getItem('emotion-wheel-selected');
     this.selected = saved ? new Set(JSON.parse(saved)) : new Set();
     this.searchHighlights = new Set(); // Words highlighted by search
+    this.allCaps = false;
+    this.locale = 'pt';
 
     // Geometry state (world coordinates)
     this.cx = 0;
@@ -34,6 +36,11 @@ export class EmotionWheel {
   setSectors(sectors) {
     this.sectors = sectors;
     this.sectorAngle = (2 * Math.PI) / this.sectors.length;
+  }
+
+  setTextTransform({ allCaps = false, locale = 'pt' } = {}) {
+    this.allCaps = allCaps;
+    this.locale = locale;
   }
 
   resize(containerW, containerH) {
@@ -241,7 +248,7 @@ export class EmotionWheel {
       this.ctx.translate(rMid, 0);
     }
 
-    this.ctx.fillText(text, 0, 0);
+    this.ctx.fillText(this.formatLabel(text), 0, 0);
     this.ctx.restore();
   }
 
@@ -268,7 +275,7 @@ export class EmotionWheel {
       this.ctx.translate(r, 0);
       this.ctx.rotate(-Math.PI / 2);
     }
-    this.ctx.fillText(name, 0, 0);
+    this.ctx.fillText(this.formatLabel(name), 0, 0);
     this.ctx.restore();
   }
 
@@ -463,7 +470,7 @@ export class EmotionWheel {
             : (angle * 180 / Math.PI);
 
           const fillColor = ColorHelper.getLabelColor(sector.baseColor, ri);
-          parts.push(`<text x="${tx}" y="${ty}" font-size="${fontSize * 0.55}" fill="${fillColor}" text-anchor="middle" dominant-baseline="central" transform="rotate(${rotDeg}, ${tx}, ${ty})">${this.escSvg(words[wi])}</text>`);
+          parts.push(`<text x="${tx}" y="${ty}" font-size="${fontSize * 0.55}" fill="${fillColor}" text-anchor="middle" dominant-baseline="central" transform="rotate(${rotDeg}, ${tx}, ${ty})">${this.escSvg(this.formatLabel(words[wi]))}</text>`);
         }
       }
     }
@@ -502,7 +509,7 @@ export class EmotionWheel {
         : (aMid * 180 / Math.PI) - 90;
 
       const fontSize = Math.max(7, this.innerR * 0.13);
-      parts.push(`<text x="${tx}" y="${ty}" font-size="${fontSize}" font-weight="600" fill="#333" text-anchor="middle" dominant-baseline="central" transform="rotate(${rotDeg}, ${tx}, ${ty})">${this.escSvg(sector.name)}</text>`);
+      parts.push(`<text x="${tx}" y="${ty}" font-size="${fontSize}" font-weight="600" fill="#333" text-anchor="middle" dominant-baseline="central" transform="rotate(${rotDeg}, ${tx}, ${ty})">${this.escSvg(this.formatLabel(sector.name))}</text>`);
     }
 
     parts.push('</svg>');
@@ -512,5 +519,10 @@ export class EmotionWheel {
   /** Escape special characters for SVG text content */
   escSvg(str) {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  formatLabel(text) {
+    if (!this.allCaps || typeof text !== 'string') return text;
+    return text.toLocaleUpperCase(this.locale);
   }
 }

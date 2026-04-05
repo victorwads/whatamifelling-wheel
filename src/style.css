@@ -64,6 +64,15 @@ html, body {
   touch-action: none;
 }
 
+body.all-caps #app,
+body.all-caps #toast {
+  text-transform: uppercase;
+}
+
+body.all-caps input::placeholder {
+  text-transform: uppercase;
+}
+
 /* ---- Layout ---- */
 
 #app {
@@ -398,6 +407,36 @@ html, body {
   line-height: 1.45;
 }
 
+.sidebar-options {
+  margin: 0 0 18px;
+}
+
+.sidebar-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sidebar-option span {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.sidebar-option input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--btn-text);
+}
+
 #sidebar h2 {
   font-size: 0.95rem;
   margin: 0 0 10px;
@@ -612,6 +651,18 @@ html, body {
   .app-description {
     font-size: 0.75rem;
     margin: 0 0 10px;
+  }
+
+  .sidebar-options {
+    margin: 0 0 12px;
+  }
+
+  .sidebar-option {
+    padding: 9px 10px;
+  }
+
+  .sidebar-option span {
+    font-size: 0.76rem;
   }
 
   #sidebar h2 {

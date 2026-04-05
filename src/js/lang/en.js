@@ -20,6 +20,7 @@ export default {
     pdfListTitle: "Selected Emotions",
     appTitle: "Emotion Wheel",
     appDescription: "Select the emotions you are feeling by clicking on them. Export or share to record how you feel.",
+    uppercaseToggle: "Show everything in uppercase",
     exportDateLabel: "Date and time",
     btnShare: "🔗 Share",
     pdfInteractiveLink: "Click here to open this report in interactive mode"

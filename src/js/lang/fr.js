@@ -20,6 +20,7 @@ export default {
     pdfListTitle: "Émotions Sélectionnées",
     appTitle: "Roue des Émotions",
     appDescription: "Sélectionnez les émotions que vous ressentez en cliquant dessus. Exportez ou partagez pour enregistrer ce que vous ressentez.",
+    uppercaseToggle: "Tout afficher en majuscules",
     exportDateLabel: "Date et heure",
     btnShare: "🔗 Partager",
     pdfInteractiveLink: "Cliquez ici pour ouvrir ce rapport en mode interactif"

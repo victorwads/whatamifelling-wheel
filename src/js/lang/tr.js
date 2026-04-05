@@ -20,6 +20,7 @@ export default {
     pdfListTitle: "Seçilen Duygular",
     appTitle: "Duygu Çarkı",
     appDescription: "Hissettiklerinizi üzerlerine tıklayarak seçin. Nasıl hissettiğinizi kaydetmek için dışa aktarın veya paylaşın.",
+    uppercaseToggle: "Her şeyi büyük harflerle göster",
     exportDateLabel: "Tarih ve saat",
     btnShare: "🔗 Paylaş",
     pdfInteractiveLink: "Etkileşimli modda raporu açmak için buraya tıklayın"

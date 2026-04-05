@@ -20,6 +20,7 @@ export default {
     pdfListTitle: "已选情绪",
     appTitle: "情绪之轮",
     appDescription: "点击选择您正在感受的情绪。导出或分享以记录您的感受。",
+    uppercaseToggle: "全部显示为大写",
     exportDateLabel: "日期和时间",
     btnShare: "🔗 分享",
     pdfInteractiveLink: "点击此处以交互模式打开此报告"
